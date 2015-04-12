@@ -1,0 +1,129 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="${relativePackage}.${activityClass}" >
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="Wifi Locator"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView1"
+        android:layout_marginLeft="14dp"
+        android:layout_marginTop="32dp"
+        android:text="Dario Bacigalupo and Emmanuel Crova" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textView2"
+        android:layout_below="@+id/textView2"
+        android:layout_marginTop="10dp"
+        android:text="IMEI: 35221506509134/8" />
+
+    <RadioButton
+        android:id="@+id/Trainrbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/textView3"
+        android:layout_marginTop="20dp"
+        android:text="Train" 
+        android:onClick="Trainclick"/>
+    
+    <RadioButton
+        android:id="@+id/Positionrbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/textView3"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="14dp"
+        android:text="Position" 
+        android:onClick="Posclick"/>
+
+    <Button
+        android:id="@+id/scanbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="30dp"
+        android:text="Start Scan" 
+        android:onClick="startScan"/>
+
+    <TextView
+        android:id="@+id/scannum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/Trainrbtn"
+        android:layout_marginLeft="14dp"
+        android:layout_marginTop="20dp"
+        android:text="Scan number:" />
+
+    <EditText
+        android:id="@+id/scannum_etx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/scannum"
+        android:layout_below="@+id/Trainrbtn"
+        android:layout_toRightOf="@+id/scannum"
+        android:ems="2"
+        android:inputType="number" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/x_coord_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/scannum"
+        android:layout_marginTop="14dp"
+        android:text="X Coordinate: " />
+
+    <TextView
+        android:id="@+id/y_coord_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/x_coord_tx"
+        android:layout_marginTop="14dp"
+        android:text="Y Coordinate: " />
+
+    <EditText
+        android:id="@+id/x_coord_edtx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/x_coord_tx"
+        android:layout_alignBottom="@+id/x_coord_tx"
+        android:layout_toRightOf="@+id/x_coord_tx"
+        android:ems="2"
+        android:layout_marginTop="14dp"
+        android:inputType="number" />
+    
+    <EditText
+        android:id="@+id/y_coord_edtx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/y_coord_tx"
+        android:layout_alignBottom="@+id/y_coord_tx"
+        android:layout_toRightOf="@+id/y_coord_tx"
+        android:ems="2"
+        android:layout_marginTop="14dp"
+        android:inputType="number" />
+   
+</RelativeLayout>
+
