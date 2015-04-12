@@ -151,9 +151,7 @@ public class MainActivity extends Activity {
     		// Register broadcast receiver 
     		// Broadcast receiver will automatically call when number of wifi connections changed
     		registerReceiver(receiverWifi, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-    		mWifiManager.startScan();
-    		
-    		Toast.makeText(getApplicationContext(), "Scanning...", Toast.LENGTH_LONG).show();
+    		mWifiManager.startScan();    		   		
     	}
 	}      
 }

@@ -62,6 +62,8 @@ public class WifiActivity extends BroadcastReceiver {
 								
 		if(MainActivity.trainbtn.isChecked() == true)
 		{									
+			Toast.makeText(c, "Scanning...", Toast.LENGTH_LONG).show();
+			
 			wifiList = MainActivity.mWifiManager.getScanResults();
 			
 			for(int i = 0; i < wifiList.size(); i++){
@@ -92,9 +94,8 @@ public class WifiActivity extends BroadcastReceiver {
 		}
 		
 		if(MainActivity.posbtn.isChecked() == true)
-		{
-			Toast.makeText(c, "Number of scan entered: --> " + scanNumber, Toast.LENGTH_LONG).show();	
-			Toast.makeText(c, "Position Mode", Toast.LENGTH_LONG).show();
+		{	
+			Toast.makeText(c, "No action performed", Toast.LENGTH_LONG).show();
 		}
 		MainActivity.buttonPress = false;
 		}
