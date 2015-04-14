@@ -39,7 +39,8 @@
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/textView3"
         android:layout_marginTop="20dp"
-        android:text="Train" 
+        android:text="Train"
+        android:checked="true"
         android:onClick="Trainclick"/>
     
     <RadioButton
@@ -80,6 +81,7 @@
         android:layout_below="@+id/Trainrbtn"
         android:layout_toRightOf="@+id/scannum"
         android:ems="2"
+        android:text="1"
         android:inputType="number" >
 
         <requestFocus />
@@ -111,6 +113,7 @@
         android:layout_alignBottom="@+id/x_coord_tx"
         android:layout_toRightOf="@+id/x_coord_tx"
         android:ems="2"
+        android:text="0"
         android:layout_marginTop="14dp"
         android:inputType="number" />
     
@@ -122,6 +125,7 @@
         android:layout_alignBottom="@+id/y_coord_tx"
         android:layout_toRightOf="@+id/y_coord_tx"
         android:ems="2"
+        android:text="0"
         android:layout_marginTop="14dp"
         android:inputType="number" />
    
