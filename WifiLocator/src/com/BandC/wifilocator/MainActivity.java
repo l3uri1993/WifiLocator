@@ -6,8 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -19,14 +17,15 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-//-------------------------------------------------------------------------------------------------------------	
-	public static WifiManager mWifiManager = null;
+//--------------------------------------------------------------VARIABILI XML-------------------------	
+	
 	public static RadioButton trainbtn;
 	public static RadioButton posbtn;
 	public static TextView xCordView;
@@ -34,17 +33,21 @@ public class MainActivity extends Activity {
 	public static EditText xCordText;
 	public static EditText yCordText;
 	public static EditText scanNum;
-//--------------------------------------------------------------------------------------------------------------	
+	public static Button scanbtn;
+	
+//--------------------------------------------------------------VARIABILI JAVA--------------------------------------
+	
+	public static WifiManager mWifiManager = null;		
 	public static boolean buttonPress = false; 			//Permette di ignorare gli intent in broadcast di sistema
-	public static int scanNumber;
+	public static int scanNumber;						//Memorizza le scansioni da effettuare
 	public static boolean isFirstScan;					//Permette al Receiver di sapere se è stato appena premuto il bottone
-	private List<ScanResult> wifiList = null;
-	private int firstAP,secondAP;
+	private List<ScanResult> wifiList = null;			//Memorizza i risultati temporanei ottenuti dalle scansioni
+	private int firstAP,secondAP;						//RSSI di ciascun AP
 	private int xCord,yCord;							//Variabili per le coordinate
-	private String checkMAC; 							//utilizzo questo per escludere le reti non desiderate
 	private int count; 									//conta le scansioni effettuate	
+	private boolean wifiIsDisabled;						//Controlla all'avvio se il Wifi era disabilitato
 	private Context context = null;
-	private boolean wifiIsDisabled;
+		
 //--------------------------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,10 +61,12 @@ public class MainActivity extends Activity {
         trainbtn = (RadioButton) findViewById(R.id.Trainrbtn);
         posbtn = (RadioButton) findViewById(R.id.Positionrbtn);
         scanNum = (EditText) findViewById(R.id.scannum_etx);
+        scanbtn = (Button) findViewById(R.id.scanbtn);
+       
                
         context = getApplicationContext();
                         
-// Check for "scan.txt" file in /sdcard/...if doesn't exist the program creates it
+//------------------------------ Check for "scan.txt" file in /sdcard/...if doesn't exist the program creates it
         
         File extStore = Environment.getExternalStorageDirectory();
         File myFile = new File(extStore.getAbsolutePath() + "/scan.txt");
@@ -77,8 +82,7 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 Toast.makeText(getBaseContext(), e.getMessage(),
                         Toast.LENGTH_SHORT).show();
-            }
-        	
+            }        	
         	FileOutputStream fOut;
 			try 
 			{
@@ -94,47 +98,16 @@ public class MainActivity extends Activity {
 			}
         }           
 
- //-----------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------
              
-        //Initialize the WiFi Manager
+//--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
         
 		mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
 		 if(mWifiManager.isWifiEnabled() == false) //Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
-	        	wifiIsDisabled = true;
-		 
+	        	wifiIsDisabled = true;		 
+//-----------------------------------------------------------------------------------------------------------------------
     }
-    
-    public void Posclick (View view) {
-        xCordView.setVisibility(View.GONE); 
-        yCordView.setVisibility(View.GONE);
-        xCordText.setVisibility(View.GONE);
-        yCordText.setVisibility(View.GONE);
-    	trainbtn.setChecked(false);
-    }
-    
-    public void Trainclick (View view) {
-        xCordView.setVisibility(View.VISIBLE); 
-        yCordView.setVisibility(View.VISIBLE);
-        xCordText.setVisibility(View.VISIBLE);
-        yCordText.setVisibility(View.VISIBLE);
-    	posbtn.setChecked(false);
-    	
-    }
-
-    @Override
-	protected void onDestroy() {
-		super.onDestroy();
-		
-		if(wifiIsDisabled == true)
-			mWifiManager.setWifiEnabled(false);
-			
-		try
-		{
-			unregisterReceiver(wifiReceiver);		
-		}
-		catch(Exception IllegalArgumentException){}
-}
-    
+       
     BroadcastReceiver wifiReceiver = new BroadcastReceiver()
     {
         @Override
@@ -144,7 +117,7 @@ public class MainActivity extends Activity {
         	
         	try 
     		{
-    		    xCord = Integer.parseInt(MainActivity.xCordText.getText().toString());
+    		    xCord = Integer.parseInt(xCordText.getText().toString());
     		} 
     		catch(NumberFormatException nfe) 
     		{
@@ -153,76 +126,71 @@ public class MainActivity extends Activity {
     		
     		try 
     		{
-    		    yCord = Integer.parseInt(MainActivity.yCordText.getText().toString());
+    		    yCord = Integer.parseInt(yCordText.getText().toString());
     		} 
     		catch(NumberFormatException nfe) 
     		{
     		   System.out.println("No number entered " + nfe);
     		} 
     		
-    		if (MainActivity.buttonPress == true)
+    		if (buttonPress == true)
     		{		
     		try 
     		{
-    		    scanNumber = Integer.parseInt(MainActivity.scanNum.getText().toString());
+    		    scanNumber = Integer.parseInt(scanNum.getText().toString());
     		} 
     		catch(NumberFormatException nfe) 
     		{
     		   System.out.println("No number entered " + nfe);
     		} 
     						
-    		try {
+    		try 
+    		{
     			FileOutputStream fOut = new FileOutputStream("sdcard/scan.txt", true); //creato nuovo stream di output per la scrittura
     			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
     								
-    		if(MainActivity.trainbtn.isChecked() == true)
-    		{				
+    			if(trainbtn.isChecked() == true)
+    			{				
     			
-    			if(MainActivity.isFirstScan == true)
-    			{
-    				MainActivity.isFirstScan = false;
-    				count = scanNumber - 1;
-    			}
+    				if(isFirstScan == true)
+    				{
+    					isFirstScan = false;
+    					count = scanNumber - 1;
+    				}
     			
-    			Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
+    				Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
     										
-    			wifiList = MainActivity.mWifiManager.getScanResults();
+    				wifiList = mWifiManager.getScanResults();
     			
-    			for(int i = 0; i < wifiList.size(); i++)
-    			{											
-    				checkMAC = wifiList.get(i).BSSID;				
-        			if(checkMAC.equals("a0:f3:c1:6c:1e:49") == true)
-        			{
-        				firstAP = firstAP + wifiList.get(i).level;
-        			}
-        			if(checkMAC.equals("00:26:44:74:e9:3e") == true)
-        			{
-        				secondAP = secondAP + wifiList.get(i).level;    	
-        			}
-    			}
-    			if (count != 0)
-    			{
-    				 count--;
-    				 myOutWriter.close();
-    				 fOut.close();			
-    				 registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-    				 MainActivity.mWifiManager.startScan();
-    				 return;
-    			}
-    			else
-    			{  				
-    				firstAP = firstAP / scanNumber;
-    				secondAP = secondAP / scanNumber;
+    				for(int i = 0; i < wifiList.size(); i++)
+    				{											    					
+    					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true)    					
+    						firstAP = firstAP + wifiList.get(i).level;
+    					
+    					if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true)    					
+    						secondAP = secondAP + wifiList.get(i).level;    	   					
+    				}
     				
-    				myOutWriter.append(xCord + "          " + yCord + "          " +  firstAP + "          " + secondAP + "\n" );
-    				Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
-    				firstAP = 0;
-    				secondAP = 0;
-    			}			    			
-    		}
-    			
-    			myOutWriter.close();
-    			fOut.close();						
+    				if (count != 0)
+    				{
+    					count--;
+    					myOutWriter.close();
+    					fOut.close();			
+    					registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+    					mWifiManager.startScan();
+    					return;
+    				}
+    				else
+    				{  				  				
+    					myOutWriter.append(xCord + "          " + yCord + "          " +  (firstAP/scanNumber) + "                " + (secondAP/scanNumber) + "\n" );
+    					Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
+    					myOutWriter.close();
+    					fOut.close();
+    					firstAP = 0;
+    					secondAP = 0;
+    					EnableButtons();
+    				}			    			
+    			}						
     		}
     		
     		catch (FileNotFoundException e) 
@@ -234,24 +202,89 @@ public class MainActivity extends Activity {
     			e.printStackTrace();
     		}
     		
-    		if(MainActivity.posbtn.isChecked() == true)
+    		if(posbtn.isChecked() == true)
     		{	
-    			Toast.makeText(c, "No action performed", Toast.LENGTH_LONG).show();
+    			if(isFirstScan == true)
+				{
+					isFirstScan = false;
+					count = scanNumber - 1;
+				}
+    			
+    			Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
+				
+				wifiList = mWifiManager.getScanResults();
+			
+				for(int i = 0; i < wifiList.size(); i++)
+				{											    					
+					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true)    					
+						firstAP = firstAP + wifiList.get(i).level;
+					
+					if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true)    					
+						secondAP = secondAP + wifiList.get(i).level;    	   					
+				}
+				
+    			if (count != 0)
+				{
+					count--;			
+					registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+					mWifiManager.startScan();
+					return;
+				}
+				else
+				{  	
+					firstAP = (firstAP/scanNumber);
+					secondAP = (secondAP/scanNumber);
+					//
+					//
+					//
+					//
+					// Dopo le scansioni, i valori sono stati acquisiti e ci posso lavorare sopra qui in mezzo
+					Toast.makeText(getApplicationContext(), "No action performed", Toast.LENGTH_LONG).show();
+					//
+					//
+					//
+					//	
+					//
+					firstAP = 0;
+					secondAP = 0;
+					EnableButtons();
+				}			    	   			   			
     		}
-    		MainActivity.buttonPress = false;
+    		buttonPress = false;
     		}
-    		else{}
+    		else{} // La scansione e stata inviata dal sistema e va ignorata
         }
     };
     	  
-    public void startScan (View view) {
+    public void EnableButtons()							//Abilita tutti gli elementi editabili concluse le operazioni
+    {
+    	scanbtn.setClickable(true);
+    	xCordText.setEnabled(true);
+        yCordText.setEnabled(true);
+        scanNum.setEnabled(true);
+        trainbtn.setClickable(true);
+        posbtn.setClickable(true);
+    }
+    
+    public void DisableButtons() 						//Disabilita tutti gli elementi editabili concluse le operazioni
+    {
+    	scanbtn.setClickable(false);
+    	xCordText.setEnabled(false);
+        yCordText.setEnabled(false);
+        scanNum.setEnabled(false);
+        trainbtn.setClickable(false);
+        posbtn.setClickable(false);
+    }
+    
+    public void StartScan (View view) {					//Si avvia al premere del pulsante di scansione
     	
+    	DisableButtons();    	    	
     	isFirstScan = true;
        	buttonPress = true;
     	
     	try 
 		{
-		    scanNumber = Integer.parseInt(MainActivity.scanNum.getText().toString());
+		    scanNumber = Integer.parseInt(scanNum.getText().toString());
 		} 
 		catch(NumberFormatException nfe) 
 		{
@@ -269,4 +302,33 @@ public class MainActivity extends Activity {
     	mWifiManager.startScan();
     		    		    
     }  
+
+    public void Posclick (View view) {					//Nasconde alcuni elementi come da specifica
+    xCordView.setVisibility(View.GONE); 
+    yCordView.setVisibility(View.GONE);
+    xCordText.setVisibility(View.GONE);
+    yCordText.setVisibility(View.GONE);
+	trainbtn.setChecked(false);
+}
+
+    public void Trainclick (View view) {				//Abilita alcuni elementi come da specifica
+    xCordView.setVisibility(View.VISIBLE);
+    yCordView.setVisibility(View.VISIBLE);
+    xCordText.setVisibility(View.VISIBLE);
+    yCordText.setVisibility(View.VISIBLE);
+	posbtn.setChecked(false);  	
+}
+
+@Override
+	protected void onDestroy() {
+	super.onDestroy();
+	
+	if(wifiIsDisabled == true)
+		mWifiManager.setWifiEnabled(false);			//Alla chiusura spegne il wifi poichè all'apertura era disabilitato
+	try
+	{
+		unregisterReceiver(wifiReceiver);		
+	}
+	catch(Exception IllegalArgumentException){}
+}
 }
