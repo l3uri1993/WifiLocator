@@ -1,8 +1,10 @@
 package com.BandC.wifilocator;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.List;
@@ -26,31 +28,34 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 //--------------------------------------------------------------VARIABILI XML-------------------------	
 	
-	public static RadioButton trainbtn;
-	public static RadioButton posbtn;
-	public static TextView xCordView;
-	public static TextView yCordView;
-	public static EditText xCordText;
-	public static EditText yCordText;
-	public static EditText scanNum;
-	public static Button scanbtn;
+	private RadioButton trainBtn;
+	private RadioButton posBtn;
+	private TextView xCordView;
+	private TextView yCordView;
+	private EditText xCordText;
+	private EditText yCordText;
+	private EditText scanNum;
+	private Button scanBtn;
 	
 //--------------------------------------------------------------VARIABILI JAVA--------------------------------------
-	
-	public static WifiManager mWifiManager = null;		
-	public static boolean buttonPress = false; 			//Permette di ignorare gli intent in broadcast di sistema
-	public static int scanNumber;						//Memorizza le scansioni da effettuare
-	public static boolean isFirstScan;					//Permette al Receiver di sapere se è stato appena premuto il bottone
+			
+	private boolean buttonPress = false; 				//Permette di ignorare gli intent in broadcast di sistema
+	private int scanNumber;								//Memorizza le scansioni da effettuare
+	private boolean isFirstScan;						//Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;			//Memorizza i risultati temporanei ottenuti dalle scansioni
 	private int firstAP,secondAP;						//RSSI di ciascun AP
 	private int xCord,yCord;							//Variabili per le coordinate
 	private int count; 									//conta le scansioni effettuate	
 	private boolean wifiIsDisabled;						//Controlla all'avvio se il Wifi era disabilitato
+	private WifiManager mWifiManager = null;
 	private Context context = null;
+	private File file;
 		
 //--------------------------------------------------------------------------------------------------------------
+	
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) 
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
                 	                   
@@ -58,110 +63,83 @@ public class MainActivity extends Activity {
         yCordView = (TextView) findViewById(R.id.y_coord_tx);
         xCordText = (EditText) findViewById(R.id.x_coord_edtx);
         yCordText = (EditText) findViewById(R.id.y_coord_edtx);       
-        trainbtn = (RadioButton) findViewById(R.id.Trainrbtn);
-        posbtn = (RadioButton) findViewById(R.id.Positionrbtn);
+        trainBtn = (RadioButton) findViewById(R.id.Trainrbtn);
+        posBtn = (RadioButton) findViewById(R.id.Positionrbtn);
         scanNum = (EditText) findViewById(R.id.scannum_etx);
-        scanbtn = (Button) findViewById(R.id.scanbtn);
+        scanBtn = (Button) findViewById(R.id.scanrbtn);
        
                
         context = getApplicationContext();
                         
-//------------------------------ Check for "scan.txt" file in /sdcard/...if doesn't exist the program creates it
+//------------------------------ Check for "radioMap.txt" file in /sdcard/...if doesn't exist the program creates it
         
         File extStore = Environment.getExternalStorageDirectory();
-        File myFile = new File(extStore.getAbsolutePath() + "/scan.txt");
+        File myFile = new File(extStore.getAbsolutePath() + "/radioMap.txt");
         if (myFile.exists()) {
-        	Toast.makeText(getApplicationContext(), "Scan.txt already exists", Toast.LENGTH_LONG).show();
+        	Toast.makeText(getApplicationContext(), "radioMap.txt already exists", Toast.LENGTH_LONG).show();
         }
         else
         {
-        	try {
-                File results = new File("/sdcard/scan.txt");
+        	try 
+        	{
+                File results = new File("/sdcard/radioMap.txt");
                 results.createNewFile();
-                Toast.makeText(getApplicationContext(), "File Scan.txt created on /sdcard/", Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Toast.makeText(getBaseContext(), e.getMessage(),
-                        Toast.LENGTH_SHORT).show();
-            }        	
-        	FileOutputStream fOut;
-			try 
-			{
-				fOut = new FileOutputStream("sdcard/scan.txt", true);
-				OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);			
-				myOutWriter.append("X" + "          " + "Y" + "          " +  "firstAP" + "          " + "secondAP" + "\n" );			
+                Toast.makeText(getApplicationContext(), "File radioMap.txt created on /sdcard/", Toast.LENGTH_LONG).show();			
+                FileOutputStream fOut = new FileOutputStream("sdcard/radioMap.txt", true);
+				OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+				myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
 				myOutWriter.close(); 
 				fOut.close();
-			}
-			 catch (IOException e) 
-			{				
-				e.printStackTrace();
-			}
-        }           
-
-//-----------------------------------------------------------------------------------------------------------------------
+				file = new File("/sdcard/radioMap.txt");
+			}		 
+        	catch (NullPointerException e)  {e.printStackTrace();} 
+        	catch (FileNotFoundException e) {e.printStackTrace();} 
+        	catch (NumberFormatException e) {e.printStackTrace();}
+        	catch (IOException e) {e.printStackTrace();}						        
+        }
              
 //--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
         
 		mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-		 if(mWifiManager.isWifiEnabled() == false) //Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
+		if(mWifiManager.isWifiEnabled() == false) //Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
 	        	wifiIsDisabled = true;		 
 //-----------------------------------------------------------------------------------------------------------------------
     }
        
     BroadcastReceiver wifiReceiver = new BroadcastReceiver()
+
     {
         @Override
         public void onReceive(Context c, Intent intent) 
+
         {
         	unregisterReceiver(wifiReceiver);
         	
         	try 
     		{
-    		    xCord = Integer.parseInt(xCordText.getText().toString());
-    		} 
-    		catch(NumberFormatException nfe) 
-    		{
-    		   System.out.println("No number entered " + nfe);
-    		} 
-    		
-    		try 
-    		{
+    		    xCord = Integer.parseInt(xCordText.getText().toString());   		     		   		
     		    yCord = Integer.parseInt(yCordText.getText().toString());
     		} 
-    		catch(NumberFormatException nfe) 
-    		{
-    		   System.out.println("No number entered " + nfe);
-    		} 
+    		catch(NumberFormatException nfe) {System.out.println("No number entered " + nfe);} 
     		
     		if (buttonPress == true)
     		{		
     		try 
-    		{
-    		    scanNumber = Integer.parseInt(scanNum.getText().toString());
-    		} 
-    		catch(NumberFormatException nfe) 
-    		{
-    		   System.out.println("No number entered " + nfe);
-    		} 
-    						
-    		try 
-    		{
-    			FileOutputStream fOut = new FileOutputStream("sdcard/scan.txt", true); //creato nuovo stream di output per la scrittura
+    		{    						    		
+    			FileOutputStream fOut = new FileOutputStream("sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
     			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
     								
-    			if(trainbtn.isChecked() == true)
-    			{				
-    			
+    			if(trainBtn.isChecked() == true)
+    			{				   			
     				if(isFirstScan == true)
     				{
     					isFirstScan = false;
     					count = scanNumber - 1;
     				}
-    			
+    				
     				Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
-    										
-    				wifiList = mWifiManager.getScanResults();
-    			
+    				
+    				wifiList = mWifiManager.getScanResults();   			
     				for(int i = 0; i < wifiList.size(); i++)
     				{											    					
     					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true)    					
@@ -182,7 +160,7 @@ public class MainActivity extends Activity {
     				}
     				else
     				{  				  				
-    					myOutWriter.append(xCord + "          " + yCord + "          " +  (firstAP/scanNumber) + "                " + (secondAP/scanNumber) + "\n" );
+    					myOutWriter.append(xCord + "          " + yCord + "          " +  (firstAP/scanNumber) + "          " + (secondAP/scanNumber) + "\n" );
     					Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
     					myOutWriter.close();
     					fOut.close();
@@ -190,19 +168,8 @@ public class MainActivity extends Activity {
     					secondAP = 0;
     					EnableButtons();
     				}			    			
-    			}						
-    		}
-    		
-    		catch (FileNotFoundException e) 
-    		{			
-    			e.printStackTrace();
-    		} 
-    		catch (IOException e) 
-    		{
-    			e.printStackTrace();
-    		}
-    		
-    		if(posbtn.isChecked() == true)
+    			}						   		    		   		
+    		if(posBtn.isChecked() == true)
     		{	
     			if(isFirstScan == true)
 				{
@@ -233,24 +200,19 @@ public class MainActivity extends Activity {
 				else
 				{  	
 					firstAP = (firstAP/scanNumber);
-					secondAP = (secondAP/scanNumber);
-					//
-					//
-					//
-					//
-					// Dopo le scansioni, i valori sono stati acquisiti e ci posso lavorare sopra qui in mezzo
-					Toast.makeText(getApplicationContext(), "No action performed", Toast.LENGTH_LONG).show();
-					//
-					//
-					//
-					//	
-					//
-					firstAP = 0;
-					secondAP = 0;
+					secondAP = (secondAP/scanNumber);										
+					firstAP = -50;								//LINEA PER TEST
+					secondAP = -50;								//LINEA PER TEST		
+					CheckLocation();			
 					EnableButtons();
 				}			    	   			   			
     		}
     		buttonPress = false;
+    		}
+    		catch (NullPointerException e)  {e.printStackTrace();} 
+    		catch (FileNotFoundException e) {e.printStackTrace();} 
+    		catch (NumberFormatException e) {e.printStackTrace();}
+    		catch (IOException e) {e.printStackTrace();}
     		}
     		else{} // La scansione e stata inviata dal sistema e va ignorata
         }
@@ -258,26 +220,26 @@ public class MainActivity extends Activity {
     	  
     public void EnableButtons()							//Abilita tutti gli elementi editabili concluse le operazioni
     {
-    	scanbtn.setClickable(true);
+    	scanBtn.setClickable(true);
     	xCordText.setEnabled(true);
         yCordText.setEnabled(true);
         scanNum.setEnabled(true);
-        trainbtn.setClickable(true);
-        posbtn.setClickable(true);
+        trainBtn.setClickable(true);
+        posBtn.setClickable(true);
     }
     
     public void DisableButtons() 						//Disabilita tutti gli elementi editabili concluse le operazioni
     {
-    	scanbtn.setClickable(false);
+    	scanBtn.setClickable(false);
     	xCordText.setEnabled(false);
         yCordText.setEnabled(false);
         scanNum.setEnabled(false);
-        trainbtn.setClickable(false);
-        posbtn.setClickable(false);
+        trainBtn.setClickable(false);
+        posBtn.setClickable(false);
     }
     
-    public void StartScan (View view) {					//Si avvia al premere del pulsante di scansione
-    	
+    public void StartScan (View view) 					//Si avvia al premere del pulsante di scansione
+    {					   	
     	DisableButtons();    	    	
     	isFirstScan = true;
        	buttonPress = true;
@@ -286,10 +248,7 @@ public class MainActivity extends Activity {
 		{
 		    scanNumber = Integer.parseInt(scanNum.getText().toString());
 		} 
-		catch(NumberFormatException nfe) 
-		{
-		   System.out.println("No number entered " + nfe);
-		}
+    	catch (NumberFormatException e) {e.printStackTrace();}
     	   	
     	if (mWifiManager.isWifiEnabled() == false) 			//Enable wifi if it is disabled
     	{      			
@@ -299,28 +258,76 @@ public class MainActivity extends Activity {
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
     	Toast.makeText(getApplicationContext(), "Scanning...", Toast.LENGTH_LONG).show();    		
-    	mWifiManager.startScan();
-    		    		    
+    	mWifiManager.startScan();    		    		    
     }  
 
-    public void Posclick (View view) {					//Nasconde alcuni elementi come da specifica
-    xCordView.setVisibility(View.GONE); 
-    yCordView.setVisibility(View.GONE);
-    xCordText.setVisibility(View.GONE);
-    yCordText.setVisibility(View.GONE);
-	trainbtn.setChecked(false);
-}
+    public void Posclick (View view) 					//Nasconde alcuni elementi come da specifica
+    {							
+    	xCordView.setVisibility(View.GONE); 
+    	yCordView.setVisibility(View.GONE);
+    	xCordText.setVisibility(View.GONE);
+    	yCordText.setVisibility(View.GONE);
+    	trainBtn.setChecked(false);
+    }
 
-    public void Trainclick (View view) {				//Abilita alcuni elementi come da specifica
-    xCordView.setVisibility(View.VISIBLE);
-    yCordView.setVisibility(View.VISIBLE);
-    xCordText.setVisibility(View.VISIBLE);
-    yCordText.setVisibility(View.VISIBLE);
-	posbtn.setChecked(false);  	
+    public void Trainclick (View view) 					//Abilita alcuni elementi come da specifica
+    {																
+    	xCordView.setVisibility(View.VISIBLE);
+    	yCordView.setVisibility(View.VISIBLE);
+    	xCordText.setVisibility(View.VISIBLE);
+    	yCordText.setVisibility(View.VISIBLE);
+		posBtn.setChecked(false);  	
 }
+    
+    public void CheckLocation()							//Mostra a schermo la posizione attuale
+    {   	
+    	int distance = 9999;
+    	xCord = -1;
+		yCord = -1;
 
+		try 
+		{			
+			BufferedReader fileReader = new BufferedReader(new FileReader(file)); 		//Reader android per leggere stringhe da txt
+			StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    
+			String stringResult = fileReader.readLine(); 								//Salta la prima linea (è solo testo per indentazione)
+			
+		    while ((stringResult = fileReader.readLine()) != null)
+			{
+				line.append(stringResult);
+				String[] readResult = stringResult.split("          ");
+				int[] splitted = new int[readResult.length]; 							//contiene i singoli valori della stringa [0]=X, [1]=Y, [2]=AP1, [3]=AP2
+				for(int i = 0;i < readResult.length;i++)
+				{
+					splitted[i] = Integer.parseInt(readResult[i]);				
+				}				
+				
+				if((Math.abs(splitted[2] - firstAP) + Math.abs(splitted[3] - secondAP)) < distance) // Metodo NN
+				{
+					xCord = splitted[0];
+					yCord = splitted[1];
+					distance = (Math.abs(splitted[2] - firstAP) + Math.abs(splitted[3] - secondAP)); 
+				}
+			}
+		    
+		    fileReader.close();		    
+		} 
+		catch (NullPointerException e)  {e.printStackTrace();} 
+		catch (FileNotFoundException e) {e.printStackTrace();} 
+		catch (NumberFormatException e) {e.printStackTrace();}
+		catch (IOException e) {e.printStackTrace();}
+		
+		if(xCord == -1)
+			Toast.makeText(getApplicationContext(), "Something was wrong...", Toast.LENGTH_LONG).show();
+		else		
+			Toast.makeText(getApplicationContext(), "Position scanned at ----> X: " + xCord + " Y: " + yCord, Toast.LENGTH_LONG).show();
+		
+		firstAP = 0;										//Re-inizializzo le variabili
+		secondAP = 0;    	
+    }
+    
 @Override
-	protected void onDestroy() {
+	protected void onDestroy() 
+{
 	super.onDestroy();
 	
 	if(wifiIsDisabled == true)
@@ -331,4 +338,5 @@ public class MainActivity extends Activity {
 	}
 	catch(Exception IllegalArgumentException){}
 }
+
 }
