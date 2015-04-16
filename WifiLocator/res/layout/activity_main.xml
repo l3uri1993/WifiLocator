@@ -72,7 +72,7 @@
         android:layout_below="@+id/Trainrbtn"
         android:layout_marginLeft="14dp"
         android:layout_marginTop="20dp"
-        android:text="Scan number:" />
+        android:text="Scan number:  " />
 
     <EditText
         android:id="@+id/scannum_etx"
@@ -83,6 +83,7 @@
         android:layout_toRightOf="@+id/scannum"
         android:ems="2"
         android:text="1"
+        android:background="#00000000"
         android:inputType="number" >
 
         <requestFocus />
@@ -95,7 +96,7 @@
         android:layout_alignLeft="@+id/scannum"
         android:layout_below="@+id/scannum"
         android:layout_marginTop="14dp"
-        android:text="X Coordinate: " />
+        android:text="X Coordinate:   " />
 
     <TextView
         android:id="@+id/y_coord_tx"
@@ -104,7 +105,7 @@
         android:layout_alignLeft="@+id/scannum"
         android:layout_below="@+id/x_coord_tx"
         android:layout_marginTop="14dp"
-        android:text="Y Coordinate: " />
+        android:text="Y Coordinate:   " />
 
     <EditText
         android:id="@+id/x_coord_edtx"
@@ -115,6 +116,7 @@
         android:layout_toRightOf="@+id/x_coord_tx"
         android:ems="2"
         android:text="0"
+        android:background="#00000000"
         android:layout_marginTop="14dp"
         android:inputType="number" />
     
@@ -127,6 +129,7 @@
         android:layout_toRightOf="@+id/y_coord_tx"
         android:ems="2"
         android:text="0"
+        android:background="#00000000"
         android:layout_marginTop="14dp"
         android:inputType="number" />
 
@@ -136,8 +139,9 @@
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/scannum"
         android:layout_above="@+id/scanrbtn"
-        android:layout_marginBottom="20dp"
-        android:text="Stato scansione:  " />
+        android:layout_marginBottom="35dp"
+        android:text="Stato scansione:  "
+        android:textSize="15dp" />
 
     <TextView
         android:id="@+id/lastScanVw"
@@ -147,9 +151,8 @@
         android:layout_alignBottom="@+id/lastScanTx"
         android:layout_alignRight="@+id/Positionrbtn"
         android:layout_above="@+id/scanrbtn"
-        android:layout_marginBottom="20dp"
-        android:text=""
-        android:visibility="gone"
+        android:layout_marginBottom="35dp"
+        android:text="Wait for scan"
         android:textAppearance="?android:attr/textAppearanceLarge" />
    
 </RelativeLayout>
