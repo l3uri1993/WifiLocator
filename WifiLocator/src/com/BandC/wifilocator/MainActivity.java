@@ -32,6 +32,8 @@ public class MainActivity extends Activity {
 	private RadioButton posBtn;
 	private TextView xCordView;
 	private TextView yCordView;
+	private TextView scanResult;
+	private TextView scanStatus;
 	private EditText xCordText;
 	private EditText yCordText;
 	private EditText scanNum;
@@ -67,6 +69,8 @@ public class MainActivity extends Activity {
         posBtn = (RadioButton) findViewById(R.id.Positionrbtn);
         scanNum = (EditText) findViewById(R.id.scannum_etx);
         scanBtn = (Button) findViewById(R.id.scanrbtn);
+        scanResult = (TextView) findViewById(R.id.lastScanVw);
+        scanStatus = (TextView) findViewById(R.id.lastScanTx);
        
                
         context = getApplicationContext();
@@ -76,27 +80,28 @@ public class MainActivity extends Activity {
         File extStore = Environment.getExternalStorageDirectory();
         File myFile = new File(extStore.getAbsolutePath() + "/radioMap.txt");
         if (myFile.exists()) {
-        	Toast.makeText(getApplicationContext(), "radioMap.txt already exists", Toast.LENGTH_LONG).show();
+        	//Toast.makeText(getApplicationContext(), "radioMap.txt already exists", Toast.LENGTH_LONG).show();
         }
         else
         {
         	try 
         	{
-                File results = new File("/sdcard/radioMap.txt");
+                File results = new File(extStore.getAbsolutePath() + "/radioMap.txt");
                 results.createNewFile();
-                Toast.makeText(getApplicationContext(), "File radioMap.txt created on /sdcard/", Toast.LENGTH_LONG).show();			
-                FileOutputStream fOut = new FileOutputStream("sdcard/radioMap.txt", true);
+             //   Toast.makeText(getApplicationContext(), "File radioMap.txt created on /sdcard/", Toast.LENGTH_LONG).show();			
+                FileOutputStream fOut = new FileOutputStream(extStore.getAbsolutePath() + "/radioMap.txt", true);
 				OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
 				myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
 				myOutWriter.close(); 
-				fOut.close();
-				file = new File("/sdcard/radioMap.txt");
+				fOut.close();				
 			}		 
         	catch (NullPointerException e)  {e.printStackTrace();} 
         	catch (FileNotFoundException e) {e.printStackTrace();} 
         	catch (NumberFormatException e) {e.printStackTrace();}
         	catch (IOException e) {e.printStackTrace();}						        
         }
+        
+        file = new File(extStore.getAbsolutePath() + "/radioMap.txt"); //File memorizzato in variabile
              
 //--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
         
@@ -107,6 +112,7 @@ public class MainActivity extends Activity {
     }
        
     BroadcastReceiver wifiReceiver = new BroadcastReceiver()
+
 
     {
         @Override
@@ -126,7 +132,7 @@ public class MainActivity extends Activity {
     		{		
     		try 
     		{    						    		
-    			FileOutputStream fOut = new FileOutputStream("sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
+    			FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
     			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
     								
     			if(trainBtn.isChecked() == true)
@@ -136,16 +142,19 @@ public class MainActivity extends Activity {
     					isFirstScan = false;
     					count = scanNumber - 1;
     				}
+
+    				scanResult.setVisibility(View.VISIBLE);
+    				scanResult.setText("Evaluating...");
     				
-    				Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
+    				//Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
     				
     				wifiList = mWifiManager.getScanResults();   			
     				for(int i = 0; i < wifiList.size(); i++)
     				{											    					
-    					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true)    					
+    					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true || (wifiList.get(i).BSSID).equals("00:3a:98:7d:4a:c1") == true)    					
     						firstAP = firstAP + wifiList.get(i).level;
     					
-    					if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true)    					
+    					if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true || (wifiList.get(i).BSSID).equals("84:80:2d:c3:a0:72") == true)    					
     						secondAP = secondAP + wifiList.get(i).level;    	   					
     				}
     				
@@ -159,14 +168,21 @@ public class MainActivity extends Activity {
     					return;
     				}
     				else
-    				{  				  				
-    					myOutWriter.append(xCord + "          " + yCord + "          " +  (firstAP/scanNumber) + "          " + (secondAP/scanNumber) + "\n" );
-    					Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
-    					myOutWriter.close();
-    					fOut.close();
+    				{
+    					if(firstAP == 0 || secondAP == 0)    					
+    						Toast.makeText(getApplicationContext(), "Error while scanning APs...No result found", Toast.LENGTH_LONG).show();    					
+    					else
+    					{			
+    						myOutWriter.append(xCord + "          " + yCord + "          " +  (firstAP/scanNumber) + "          " + (secondAP/scanNumber) + "\n" );
+    						Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_SHORT).show();  						
+    					}
     					firstAP = 0;
-    					secondAP = 0;
-    					EnableButtons();
+						secondAP = 0;    					
+						scanResult.setVisibility(View.GONE);
+						scanResult.setText("");
+						myOutWriter.close();
+						fOut.close();
+						EnableButtons();
     				}			    			
     			}						   		    		   		
     		if(posBtn.isChecked() == true)
@@ -177,16 +193,16 @@ public class MainActivity extends Activity {
 					count = scanNumber - 1;
 				}
     			
-    			Toast.makeText(getApplicationContext(), "Scan number " + (scanNumber - count), Toast.LENGTH_SHORT).show();
+    			scanResult.setText("Evaluating...");
 				
 				wifiList = mWifiManager.getScanResults();
 			
 				for(int i = 0; i < wifiList.size(); i++)
 				{											    					
-					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true)    					
+					if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true || (wifiList.get(i).BSSID).equals("00:3a:98:7d:4a:c1") == true)    					
 						firstAP = firstAP + wifiList.get(i).level;
 					
-					if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true)    					
+					if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true || (wifiList.get(i).BSSID).equals("84:80:2d:c3:a0:72") == true)    					
 						secondAP = secondAP + wifiList.get(i).level;    	   					
 				}
 				
@@ -200,10 +216,16 @@ public class MainActivity extends Activity {
 				else
 				{  	
 					firstAP = (firstAP/scanNumber);
-					secondAP = (secondAP/scanNumber);										
-					firstAP = -50;								//LINEA PER TEST
-					secondAP = -50;								//LINEA PER TEST		
-					CheckLocation();			
+					secondAP = (secondAP/scanNumber);
+					if(firstAP == 0 || secondAP == 0)
+						scanResult.setText("No APs data");					
+					else
+					{
+						CheckLocation();
+						Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_SHORT).show();  
+					}
+					firstAP = 0;
+					secondAP = 0;
 					EnableButtons();
 				}			    	   			   			
     		}
@@ -214,7 +236,7 @@ public class MainActivity extends Activity {
     		catch (NumberFormatException e) {e.printStackTrace();}
     		catch (IOException e) {e.printStackTrace();}
     		}
-    		else{} // La scansione e stata inviata dal sistema e va ignorata
+    		else{} 										// La scansione è stata inviata dal sistema e va ignorata
         }
     };
     	  
@@ -257,7 +279,7 @@ public class MainActivity extends Activity {
     	} 
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-    	Toast.makeText(getApplicationContext(), "Scanning...", Toast.LENGTH_LONG).show();    		
+    	Toast.makeText(getApplicationContext(), "Scan has been started", Toast.LENGTH_SHORT).show();    		
     	mWifiManager.startScan();    		    		    
     }  
 
@@ -267,6 +289,8 @@ public class MainActivity extends Activity {
     	yCordView.setVisibility(View.GONE);
     	xCordText.setVisibility(View.GONE);
     	yCordText.setVisibility(View.GONE);
+    	scanStatus.setText("Posizione rilevata: ");
+    	scanResult.setVisibility(View.VISIBLE);
     	trainBtn.setChecked(false);
     }
 
@@ -275,7 +299,9 @@ public class MainActivity extends Activity {
     	xCordView.setVisibility(View.VISIBLE);
     	yCordView.setVisibility(View.VISIBLE);
     	xCordText.setVisibility(View.VISIBLE);
-    	yCordText.setVisibility(View.VISIBLE);
+    	yCordText.setVisibility(View.VISIBLE);		
+		scanStatus.setText("Stato scansione");
+    	scanResult.setVisibility(View.GONE);
 		posBtn.setChecked(false);  	
 }
     
@@ -299,13 +325,13 @@ public class MainActivity extends Activity {
 				for(int i = 0;i < readResult.length;i++)
 				{
 					splitted[i] = Integer.parseInt(readResult[i]);				
-				}				
+				}							
 				
 				if((Math.abs(splitted[2] - firstAP) + Math.abs(splitted[3] - secondAP)) < distance) // Metodo NN
 				{
 					xCord = splitted[0];
 					yCord = splitted[1];
-					distance = (Math.abs(splitted[2] - firstAP) + Math.abs(splitted[3] - secondAP)); 
+					distance = (Math.abs(splitted[2] - firstAP) + Math.abs(splitted[3] - secondAP));					
 				}
 			}
 		    
@@ -317,12 +343,9 @@ public class MainActivity extends Activity {
 		catch (IOException e) {e.printStackTrace();}
 		
 		if(xCord == -1)
-			Toast.makeText(getApplicationContext(), "Something was wrong...", Toast.LENGTH_LONG).show();
+			Toast.makeText(getApplicationContext(), "File scansioni vuoto", Toast.LENGTH_LONG).show();
 		else		
-			Toast.makeText(getApplicationContext(), "Position scanned at ----> X: " + xCord + " Y: " + yCord, Toast.LENGTH_LONG).show();
-		
-		firstAP = 0;										//Re-inizializzo le variabili
-		secondAP = 0;    	
+			scanResult.setText("X --> " + xCord + "  -  Y --> " + yCord);
     }
     
 @Override

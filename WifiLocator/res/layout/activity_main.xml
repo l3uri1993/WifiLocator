@@ -129,6 +129,28 @@
         android:text="0"
         android:layout_marginTop="14dp"
         android:inputType="number" />
+
+    <TextView
+        android:id="@+id/lastScanTx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_above="@+id/scanrbtn"
+        android:layout_marginBottom="20dp"
+        android:text="Stato scansione:  " />
+
+    <TextView
+        android:id="@+id/lastScanVw"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/lastScanTx"
+        android:layout_alignBottom="@+id/lastScanTx"
+        android:layout_alignRight="@+id/Positionrbtn"
+        android:layout_above="@+id/scanrbtn"
+        android:layout_marginBottom="20dp"
+        android:text=""
+        android:visibility="gone"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
    
 </RelativeLayout>
 
