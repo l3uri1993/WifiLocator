@@ -1635,8 +1635,14 @@ containing a value of this type.
         public static final int ic_launcher=0x7f020033;
     }
     public static final class id {
+        public static final int K_NN_res=0x7f090051;
+        public static final int K_NN_tx=0x7f09004e;
+        public static final int NN_res=0x7f090050;
+        public static final int NN_tx=0x7f09004d;
         public static final int Positionrbtn=0x7f090043;
         public static final int Trainrbtn=0x7f090042;
+        public static final int WK_NN_res=0x7f090052;
+        public static final int WK_NN_tx=0x7f09004f;
         public static final int action_bar=0x7f090031;
         public static final int action_bar_activity_content=0x7f090003;
         public static final int action_bar_container=0x7f090030;
@@ -1650,7 +1656,7 @@ containing a value of this type.
         public static final int action_mode_bar=0x7f09002e;
         public static final int action_mode_bar_stub=0x7f09002d;
         public static final int action_mode_close_button=0x7f090020;
-        public static final int action_settings=0x7f09004d;
+        public static final int action_settings=0x7f090053;
         public static final int activity_chooser_view_content=0x7f090021;
         public static final int always=0x7f090014;
         public static final int beginning=0x7f09001b;

@@ -151,9 +151,66 @@
         android:layout_alignBottom="@+id/lastScanTx"
         android:layout_alignRight="@+id/Positionrbtn"
         android:layout_above="@+id/scanrbtn"
-        android:layout_marginBottom="35dp"
+        android:layout_marginBottom="10dp"
         android:text="Wait for scan"
         android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/NN_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/y_coord_tx"
+        android:layout_marginTop="20dp"
+        android:text="NN Method position: "
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/K_NN_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/NN_tx"
+        android:layout_marginTop="10dp"
+        android:text="K-NN Method position: "
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/WK_NN_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/K_NN_tx"
+        android:layout_marginTop="10dp"
+        android:text="WK-NN Method position: "
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/NN_res"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/NN_tx"
+        android:layout_alignBottom="@+id/NN_tx"
+        android:layout_alignRight="@+id/lastScanVw"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/K_NN_res"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/K_NN_tx"
+        android:layout_alignBottom="@+id/K_NN_tx"
+        android:layout_alignRight="@+id/lastScanVw"
+        android:text="" />
+
+    <TextView
+        android:id="@+id/WK_NN_res"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/WK_NN_tx"
+        android:layout_alignBottom="@+id/WK_NN_tx"
+        android:layout_alignRight="@+id/lastScanVw"
+        android:text="" />
    
 </RelativeLayout>
 
