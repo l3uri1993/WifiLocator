@@ -31,8 +31,8 @@ public class MainActivity extends Activity {
 	
 //--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
-    private static final int FADEIN_DELAY_MS = 10000;
-    private static final int FADEOUT_DELAY_MS = 5000;
+    private static final int FADEIN_DELAY_MS = 100000;
+    private static final int FADEOUT_DELAY_MS = 100000;
 
     private View root;
     
