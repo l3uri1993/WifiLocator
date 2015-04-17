@@ -333,7 +333,7 @@ public class MainActivity extends Activity {
 		}
     }
     
-    public void CheckFile()
+    public void CheckFile()										//Controlla l'esistenza del file radioMap.txt
     {        
         if (file.exists() == false) 
         {       
