@@ -28,10 +28,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 	
-<<<<<<< HEAD
-//---------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
-	
-=======
+
 //--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
     private static final int FADEIN_DELAY_MS = 100000;
@@ -40,7 +37,7 @@ public class MainActivity extends Activity {
     private View root;
     
     
->>>>>>> master
+
 	private RadioButton trainBtn;
 	private RadioButton posBtn;
 	private TextView 	xCordView;
