@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -92,6 +93,8 @@ public class MainActivity extends Activity {
 //--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
         
 		mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+		mWifiManager.createWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY, "scanOnly");
+       	
 		
 		if(mWifiManager.isWifiEnabled() == false) 								//Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
 	        	wifiIsDisabled = true;
