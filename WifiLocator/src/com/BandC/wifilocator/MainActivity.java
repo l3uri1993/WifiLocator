@@ -16,7 +16,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.WifiLock;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
