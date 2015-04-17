@@ -19,6 +19,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -28,7 +29,13 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 	
 //--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
-	
+
+    private static final int FADEIN_DELAY_MS = 100000;
+    private static final int FADEOUT_DELAY_MS = 100000;
+
+    private View root;
+    
+    
 	private RadioButton trainBtn;
 	private RadioButton posBtn;
 	private TextView 	xCordView;
@@ -64,9 +71,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) 
     {
+   
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-                	                   
+        setContentView(R.layout.activity_main);       
+        runFadeAnimationOn(this, root, true, FADEIN_DELAY_MS);
+                	                 
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
         yCordView  =  (TextView)	 findViewById(R.id.y_coord_tx);
         scanResult =  (TextView)     findViewById(R.id.lastScanVw);
@@ -354,6 +363,41 @@ public class MainActivity extends Activity {
         	catch (IOException e) {e.printStackTrace();}						        
         }
         else{}
+    }
+    
+    private void runFadeAnimationOn(Activity ctx, View target, boolean in, int delay) {
+        int start, finish;
+        if (in) {
+            start = 0;
+            finish = 1;
+        } else {
+            start = 1;
+            finish = 0;
+        }
+        try
+        {
+        AlphaAnimation fade = new AlphaAnimation(start, finish); 
+        fade.setDuration(delay); 
+        fade.setFillAfter(true); 
+        target.startAnimation(fade);
+        }
+        catch(NullPointerException e){}
+    }    
+    
+    public void finishFade() {
+        final int delay = FADEOUT_DELAY_MS;
+        runFadeAnimationOn(this, root, false, delay);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(delay);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                MainActivity.super.finish();
+            }
+        }).start();
     }
     
 @Override
