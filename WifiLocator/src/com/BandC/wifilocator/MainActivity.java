@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
     {
    
         super.onCreate(savedInstanceState);
-        setContentView(root);       
+        setContentView(R.layout.activity_main);       
         
         runFadeAnimationOn(this, root, true, FADEIN_DELAY_MS);
                 	                 
