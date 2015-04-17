@@ -53,7 +53,6 @@ public class MainActivity extends Activity {
 	private boolean isFirstScan;								//Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;					//Memorizza i risultati temporanei ottenuti dalle scansioni
 	private int firstAP,secondAP;								//RSSI di ciascun AP
-	private int xCord,yCord;									//Variabili per le coordinate
 	private int count; 											//Conta le scansioni effettuate	per ogni operazione
 	private boolean wifiIsDisabled;								//Controlla all'avvio se il Wifi era disabilitato
 	private WifiManager mWifiManager = null;
@@ -101,7 +100,7 @@ public class MainActivity extends Activity {
 //-----------------------------------------------------------------------------------------------------------------------
     }
        
-    BroadcastReceiver wifiReceiver = new BroadcastReceiver()	//Receiver in Broadcast per le scansioni wifi
+    BroadcastReceiver wifiReceiver = new BroadcastReceiver()	//Receiver in Broadcast per le scansioni wifiz
     {
         @Override
         public void onReceive(Context c, Intent intent) 
@@ -287,9 +286,9 @@ public class MainActivity extends Activity {
     public void CheckLocation()									//Mostra a schermo la posizione attuale
     {   	
     	int distance = Integer.MAX_VALUE;						
-    	xCord = -1;
-		yCord = -1;
-
+    	int NNxCord = -1;
+		int NNyCord = -1;
+    	
 		try 
 		{			
 			BufferedReader fileReader = new BufferedReader(new FileReader(file)); 		//Reader android per leggere stringhe da txt
@@ -308,10 +307,11 @@ public class MainActivity extends Activity {
 
 				if((Math.abs(splittedInt[2] - firstAP) + Math.abs(splittedInt[3] - secondAP)) < distance) // Metodo NN
 				{
-					xCord = splittedInt[0];
-					yCord = splittedInt[1];
+					NNxCord = splittedInt[0];
+					NNyCord = splittedInt[1];
 					distance = (Math.abs(splittedInt[2] - firstAP) + Math.abs(splittedInt[3] - secondAP));					
 				}
+				
 			}
 		    		    
 		    fileReader.close();		    												//Chiudo il reader
@@ -321,7 +321,7 @@ public class MainActivity extends Activity {
 		catch (NumberFormatException e) {e.printStackTrace();}
 		catch (IOException e) {e.printStackTrace();}
 		
-		if(xCord == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
+		if(NNxCord == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
 		{
 			Toast.makeText(getApplicationContext(), "File scansioni vuoto", Toast.LENGTH_SHORT).show();
 			NNres.setText("Error");
@@ -329,7 +329,7 @@ public class MainActivity extends Activity {
 		}
 		else											//Stampo a schermo i risultati
 		{
-			NNres.setText("X --> " + xCord + "  -  Y --> " + yCord);
+			NNres.setText("X --> " + NNxCord + "  -  Y --> " + NNyCord);
 			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_SHORT).show();
 			scanResult.setText("Wait for scan");
 		}
