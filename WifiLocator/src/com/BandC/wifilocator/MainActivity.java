@@ -27,8 +27,7 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
-	
+public class MainActivity extends Activity {	
 
 //--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
@@ -37,7 +36,6 @@ public class MainActivity extends Activity {
 	private TextView 	xCordView;
 	private TextView 	yCordView;
 	private TextView	scanResult;
-	private TextView	scanStatus;
 	private TextView	NNtx;
 	private TextView	KNNtx;
 	private TextView	WKNNtx;
@@ -74,14 +72,13 @@ public class MainActivity extends Activity {
     {
    
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(root);       
         
         runFadeAnimationOn(this, root, true, FADEIN_DELAY_MS);
                 	                 
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
         yCordView  =  (TextView)	 findViewById(R.id.y_coord_tx);
-        scanResult =  (TextView)     findViewById(R.id.lastScanVw);
-        scanStatus =  (TextView)     findViewById(R.id.lastScanTx);
+        scanResult =  (TextView)     findViewById(R.id.lastScanVw);     
        	NNtx	   =  (TextView)     findViewById(R.id.NN_tx);
     	KNNtx      =  (TextView)     findViewById(R.id.K_NN_tx);
     	WKNNtx     =  (TextView)     findViewById(R.id.WK_NN_tx);
@@ -103,16 +100,14 @@ public class MainActivity extends Activity {
 //--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
         
 		mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
-		mWifiManager.createWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY, "scanOnly");
-       	
-		
+		mWifiManager.createWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY, "scanOnly");       			
 		if(mWifiManager.isWifiEnabled() == false) 								//Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
 	        	wifiIsDisabled = true;
     	
 //-----------------------------------------------------------------------------------------------------------------------
     }
        
-    BroadcastReceiver wifiReceiver = new BroadcastReceiver()	//Receiver in Broadcast per le scansioni wifiz
+    BroadcastReceiver wifiReceiver = new BroadcastReceiver()	//Receiver in Broadcast per le scansioni wifi
     {
         @Override
         public void onReceive(Context c, Intent intent) 
@@ -143,8 +138,8 @@ public class MainActivity extends Activity {
     		    		
     		    		if (count != 0)
     		    		{
-    		    			count--; 					 //Abbassa il contatore delle scansioni mancanti
-    		    			Handler handler = new Handler();
+    		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
+    		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
     		    			handler.postDelayed(new Runnable() {
     		    			    public void run() {
     		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
@@ -197,16 +192,16 @@ public class MainActivity extends Activity {
 				
     		    		if (count != 0)
     		    		{
-    		    			count--; 					 //Abbassa il contatore delle scansioni mancanti
+    		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
     		    			Handler handler = new Handler();
-    		    			handler.postDelayed(new Runnable() {
+    		    			handler.postDelayed(new Runnable() {		 //Attende lo scan interval per lanciare la nuova scansione
     		    			    public void run() {
     		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
     	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
     	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			    }
     		    			}, scanInterval*1000);
-    		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
+    		    			return;						 				//Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
     		    		}
     		    		else
     		    		{  	
@@ -308,7 +303,6 @@ public class MainActivity extends Activity {
     	NNres.setVisibility(View.GONE);
     	KNNres.setVisibility(View.GONE);
     	WKNNres.setVisibility(View.GONE);
-		scanStatus.setText("Stato scansione: ");
 		scanResult.setText("Wait for scan");
 		posBtn.setChecked(false);  	
 }
@@ -434,7 +428,7 @@ public class MainActivity extends Activity {
 	{
 		unregisterReceiver(wifiReceiver);		
 	}
-	catch(Exception IllegalArgumentException){}
+	catch(IllegalArgumentException e){e.printStackTrace();}
 }
 
 }
