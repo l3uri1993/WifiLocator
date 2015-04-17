@@ -18,6 +18,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
@@ -30,13 +31,6 @@ public class MainActivity extends Activity {
 	
 
 //--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
-
-    private static final int FADEIN_DELAY_MS = 100000;
-    private static final int FADEOUT_DELAY_MS = 100000;
-
-    private View root;
-    
-    
 
 	private RadioButton trainBtn;
 	private RadioButton posBtn;
@@ -57,7 +51,9 @@ public class MainActivity extends Activity {
 	private Button 	    scanBtn;
 	
 //--------------------------------------------------------------VARIABILI PER JAVA--------------------------------------
-			
+	
+    private static final int FADEIN_DELAY_MS = 100000;
+    private static final int FADEOUT_DELAY_MS = 100000;
 	private boolean buttonPress = false; 						//Permette di ignorare gli intent in broadcast di sistema
 	private int scanNumber;										//Memorizza le scansioni da effettuare
 	private int scanInterval;
@@ -69,6 +65,7 @@ public class MainActivity extends Activity {
 	private WifiManager mWifiManager = null;
 	private Context context = null;
 	private File file;
+    private View root;
 		
 //--------------------------------------------------------------------------------------------------------------
 	
@@ -77,7 +74,8 @@ public class MainActivity extends Activity {
     {
    
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);       
+        setContentView(R.layout.activity_main);
+        
         runFadeAnimationOn(this, root, true, FADEIN_DELAY_MS);
                 	                 
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
@@ -146,10 +144,16 @@ public class MainActivity extends Activity {
     		    		if (count != 0)
     		    		{
     		    			count--; 					 //Abbassa il contatore delle scansioni mancanti
-    		    			Thread.sleep(scanInterval*1000);
-    		    			registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
-    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
+    		    			Handler handler = new Handler();
+    		    			handler.postDelayed(new Runnable() {
+    		    			    public void run() {
+    		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
+    	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
+    	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
+    		    			    }
+    		    			}, scanInterval*1000);
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
+
     		    		}
     		    		else
     		    		{
@@ -194,9 +198,14 @@ public class MainActivity extends Activity {
     		    		if (count != 0)
     		    		{
     		    			count--; 					 //Abbassa il contatore delle scansioni mancanti
-    		    			Thread.sleep(scanInterval*1000);
-    		    			registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
-    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
+    		    			Handler handler = new Handler();
+    		    			handler.postDelayed(new Runnable() {
+    		    			    public void run() {
+    		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
+    	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
+    	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
+    		    			    }
+    		    			}, scanInterval*1000);
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
     		    		}
     		    		else
@@ -221,10 +230,7 @@ public class MainActivity extends Activity {
     		catch (NullPointerException e)  {e.printStackTrace();} 
     		catch (FileNotFoundException e) {e.printStackTrace();} 
     		catch (NumberFormatException e) {e.printStackTrace();}
-    		catch (IOException e) {e.printStackTrace();} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+    		catch (IOException e) {e.printStackTrace();}         	
         }
     };
     	  
@@ -287,7 +293,6 @@ public class MainActivity extends Activity {
     	KNNres.setVisibility(View.VISIBLE);
     	WKNNres.setVisibility(View.VISIBLE);
     	scanResult.setVisibility(View.VISIBLE);
-    	scanStatus.setText("Posizione rilevata: ");
     	trainBtn.setChecked(false);
     }
 
@@ -381,7 +386,8 @@ public class MainActivity extends Activity {
         else{}
     }
     
-    private void runFadeAnimationOn(Activity ctx, View target, boolean in, int delay) {
+    public void runFadeAnimationOn(Activity ctx, View target, boolean in, int delay) 
+    {
         int start, finish;
         if (in) {
             start = 0;
@@ -400,7 +406,8 @@ public class MainActivity extends Activity {
         catch(NullPointerException e){}
     }    
     
-    public void finishFade() {
+    public void finishFade() 
+{
         final int delay = FADEOUT_DELAY_MS;
         runFadeAnimationOn(this, root, false, delay);
         new Thread(new Runnable() {

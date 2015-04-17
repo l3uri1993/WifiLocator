@@ -219,7 +219,7 @@
         android:layout_alignBaseline="@+id/scannum_etx"
         android:layout_alignBottom="@+id/scannum_etx"
         android:layout_alignParentRight="true"
-        android:layout_marginRight="60dp"
+        android:layout_marginRight="45dp"
         android:text="Scan interval:" />
 
     <EditText
@@ -230,7 +230,6 @@
         android:layout_alignBottom="@+id/scanIntTx"
         android:layout_below="@+id/Positionrbtn"
         android:layout_alignParentRight="true"
-        android:layout_marginRight="10dp"
         android:ems="2"
         android:text="10"
         android:background="#00000000"
