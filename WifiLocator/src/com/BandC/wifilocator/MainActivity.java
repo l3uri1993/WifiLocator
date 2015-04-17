@@ -51,12 +51,14 @@ public class MainActivity extends Activity {
 	private EditText    xCordText;
 	private EditText	yCordText;
 	private EditText 	scanNum;
+	private EditText    scanIntEd;
 	private Button 	    scanBtn;
 	
 //--------------------------------------------------------------VARIABILI PER JAVA--------------------------------------
 			
 	private boolean buttonPress = false; 						//Permette di ignorare gli intent in broadcast di sistema
 	private int scanNumber;										//Memorizza le scansioni da effettuare
+	private int scanInterval;
 	private boolean isFirstScan;								//Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;					//Memorizza i risultati temporanei ottenuti dalle scansioni
 	private int firstAP,secondAP;								//RSSI di ciascun AP
@@ -89,6 +91,7 @@ public class MainActivity extends Activity {
         xCordText  =  (EditText)     findViewById(R.id.x_coord_edtx);
         yCordText  =  (EditText)     findViewById(R.id.y_coord_edtx); 
         scanNum    =  (EditText)     findViewById(R.id.scannum_etx);
+        scanIntEd  =  (EditText)     findViewById(R.id.scanIntEd);
         trainBtn   =  (RadioButton)  findViewById(R.id.Trainrbtn);
         posBtn     =  (RadioButton)  findViewById(R.id.Positionrbtn);
         scanBtn    =  (Button)       findViewById(R.id.scanrbtn);
@@ -140,7 +143,8 @@ public class MainActivity extends Activity {
     		    		
     		    		if (count != 0)
     		    		{
-    		    			count--; 					 //Abbassa il contatore delle scansioni mancanti		
+    		    			count--; 					 //Abbassa il contatore delle scansioni mancanti
+    		    			Thread.sleep(scanInterval*1000);
     		    			registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
     		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
@@ -187,7 +191,8 @@ public class MainActivity extends Activity {
 				
     		    		if (count != 0)
     		    		{
-    		    			count--; 					 //Abbassa il contatore delle scansioni mancanti		
+    		    			count--; 					 //Abbassa il contatore delle scansioni mancanti
+    		    			Thread.sleep(scanInterval*1000);
     		    			registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
     		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
@@ -214,7 +219,10 @@ public class MainActivity extends Activity {
     		catch (NullPointerException e)  {e.printStackTrace();} 
     		catch (FileNotFoundException e) {e.printStackTrace();} 
     		catch (NumberFormatException e) {e.printStackTrace();}
-    		catch (IOException e) {e.printStackTrace();}
+    		catch (IOException e) {e.printStackTrace();} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
     };
     	  
@@ -226,6 +234,7 @@ public class MainActivity extends Activity {
         scanNum.setEnabled(true);
         trainBtn.setClickable(true);
         posBtn.setClickable(true);
+        scanIntEd.setEnabled(true);
     }
     
     public void DisableButtons() 								//Disabilita tutti gli elementi editabili per completare le operazioni
@@ -236,6 +245,7 @@ public class MainActivity extends Activity {
         scanNum.setEnabled(false);
         trainBtn.setClickable(false);
         posBtn.setClickable(false);
+        scanIntEd.setEnabled(false);
     }
     
     public void StartScan (View view) 							//Si avvia al premere del pulsante di scansione
@@ -251,7 +261,11 @@ public class MainActivity extends Activity {
     		mWifiManager.setWifiEnabled(true);
     	} 
     	
-    	try   {scanNumber = Integer.parseInt(scanNum.getText().toString());}
+    	try   
+    	{
+    		scanNumber = Integer.parseInt(scanNum.getText().toString()); 
+    		scanInterval = Integer.parseInt(scanIntEd.getText().toString()); 
+    	}
     	catch (NumberFormatException e) {e.printStackTrace();}
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));   		

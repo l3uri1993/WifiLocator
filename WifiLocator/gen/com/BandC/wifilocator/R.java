@@ -1656,7 +1656,7 @@ containing a value of this type.
         public static final int action_mode_bar=0x7f09002e;
         public static final int action_mode_bar_stub=0x7f09002d;
         public static final int action_mode_close_button=0x7f090020;
-        public static final int action_settings=0x7f090053;
+        public static final int action_settings=0x7f090055;
         public static final int activity_chooser_view_content=0x7f090021;
         public static final int always=0x7f090014;
         public static final int beginning=0x7f09001b;
@@ -1687,6 +1687,8 @@ containing a value of this type.
         public static final int progress_circular=0x7f090007;
         public static final int progress_horizontal=0x7f090008;
         public static final int radio=0x7f09002b;
+        public static final int scanIntEd=0x7f090054;
+        public static final int scanIntTx=0x7f090053;
         public static final int scannum=0x7f090045;
         public static final int scannum_etx=0x7f090046;
         public static final int scanrbtn=0x7f090044;

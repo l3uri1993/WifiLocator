@@ -211,6 +211,30 @@
         android:layout_alignBottom="@+id/WK_NN_tx"
         android:layout_alignRight="@+id/lastScanVw"
         android:text="" />
+
+    <TextView
+        android:id="@+id/scanIntTx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/scannum_etx"
+        android:layout_alignBottom="@+id/scannum_etx"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="60dp"
+        android:text="Scan interval:" />
+
+    <EditText
+		android:id="@+id/scanIntEd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/scanIntTx"
+        android:layout_alignBottom="@+id/scanIntTx"
+        android:layout_below="@+id/Positionrbtn"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10dp"
+        android:ems="2"
+        android:text="10"
+        android:background="#00000000"
+        android:inputType="number" />
    
 </RelativeLayout>
 
