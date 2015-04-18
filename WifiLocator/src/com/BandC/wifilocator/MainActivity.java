@@ -21,6 +21,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -63,7 +65,7 @@ public class MainActivity extends Activity {
 	private WifiManager mWifiManager = null;
 	private Context context = null;
 	private File file;
-    private View root;
+    private View view;
 		
 //--------------------------------------------------------------------------------------------------------------
 	
@@ -72,9 +74,12 @@ public class MainActivity extends Activity {
     {
    
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);       
+        setContentView(R.layout.activity_main);  
         
-        runFadeAnimationOn(this, root, true, FADEIN_DELAY_MS);
+        view = findViewById(android.R.id.content);
+        Animation mLoadAnimation = AnimationUtils.loadAnimation(getApplicationContext(), android.R.anim.fade_in);
+        mLoadAnimation.setDuration(2000);
+        view.startAnimation(mLoadAnimation);
                 	                 
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
         yCordView  =  (TextView)	 findViewById(R.id.y_coord_tx);
@@ -380,47 +385,14 @@ public class MainActivity extends Activity {
         else{}
     }
     
-    public void runFadeAnimationOn(Activity ctx, View target, boolean in, int delay) 
-    {
-        int start, finish;
-        if (in) {
-            start = 0;
-            finish = 1;
-        } else {
-            start = 1;
-            finish = 0;
-        }
-        try
-        {
-        AlphaAnimation fade = new AlphaAnimation(start, finish); 
-        fade.setDuration(delay); 
-        fade.setFillAfter(true); 
-        target.startAnimation(fade);
-        }
-        catch(NullPointerException e){}
-    }    
-    
-    public void finishFade() 
-{
-        final int delay = FADEOUT_DELAY_MS;
-        runFadeAnimationOn(this, root, false, delay);
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(delay);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                MainActivity.super.finish();
-            }
-        }).start();
-    }
-    
 @Override
 	protected void onDestroy() 
 {
 	super.onDestroy();
+	
+	Animation mLoadAnimation = AnimationUtils.loadAnimation(getApplicationContext(), android.R.anim.fade_out);
+    mLoadAnimation.setDuration(2000);
+    view.startAnimation(mLoadAnimation);
 	
 	if(wifiIsDisabled == true)
 		mWifiManager.setWifiEnabled(false);			//Alla chiusura spegne il wifi poichè all'apertura era disabilitato
