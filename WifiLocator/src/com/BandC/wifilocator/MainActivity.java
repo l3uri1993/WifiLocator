@@ -20,7 +20,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -52,11 +51,9 @@ public class MainActivity extends Activity {
 	
 //--------------------------------------------------------------VARIABILI PER JAVA--------------------------------------
 	
-    private static final int FADEIN_DELAY_MS = 100000;
-    private static final int FADEOUT_DELAY_MS = 100000;
 	private boolean buttonPress = false; 						//Permette di ignorare gli intent in broadcast di sistema
 	private int scanNumber;										//Memorizza le scansioni da effettuare
-	private int scanInterval;
+	private int scanInterval;									//Intervallo tra ogni scansione
 	private boolean isFirstScan;								//Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;					//Memorizza i risultati temporanei ottenuti dalle scansioni
 	private int firstAP,secondAP;								//RSSI di ciascun AP
@@ -145,8 +142,10 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
     		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
-    		    			handler.postDelayed(new Runnable() {
-    		    			    public void run() {
+    		    			handler.postDelayed(new Runnable() 
+    		    			{
+    		    				public void run() 
+    		    				{
     		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
     	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
     	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
@@ -199,8 +198,10 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
     		    			Handler handler = new Handler();
-    		    			handler.postDelayed(new Runnable() {		 //Attende lo scan interval per lanciare la nuova scansione
-    		    			    public void run() {
+    		    			handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
+    		    			{		 
+    		    			    public void run() 
+    		    			    {
     		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
     	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
     	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
@@ -310,7 +311,7 @@ public class MainActivity extends Activity {
     	WKNNres.setVisibility(View.GONE);
 		scanResult.setText("Wait for scan");
 		posBtn.setChecked(false);  	
-}
+    }
     
     public void CheckLocation()									//Mostra a schermo la posizione attuale
     {   	
@@ -387,20 +388,16 @@ public class MainActivity extends Activity {
     
 @Override
 	protected void onDestroy() 
-{
-	super.onDestroy();
-	
-	Animation mLoadAnimation = AnimationUtils.loadAnimation(getApplicationContext(), android.R.anim.fade_out);
-    mLoadAnimation.setDuration(2000);
-    view.startAnimation(mLoadAnimation);
-	
-	if(wifiIsDisabled == true)
-		mWifiManager.setWifiEnabled(false);			//Alla chiusura spegne il wifi poichè all'apertura era disabilitato
-	try
 	{
-		unregisterReceiver(wifiReceiver);		
+		super.onDestroy();
+	
+		if(wifiIsDisabled == true)
+			mWifiManager.setWifiEnabled(false);			//Alla chiusura spegne il wifi poichè all'apertura era disabilitato
+		try
+		{
+			unregisterReceiver(wifiReceiver);		
+		}
+		catch(IllegalArgumentException e){e.printStackTrace();}
 	}
-	catch(IllegalArgumentException e){e.printStackTrace();}
-}
 
 }
