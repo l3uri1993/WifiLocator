@@ -214,8 +214,12 @@ public class MainActivity extends Activity {
     		    			firstAP = (firstAP/scanNumber);
     		    			secondAP = (secondAP/scanNumber);
     		    			
-    		    			if(firstAP == 0 || secondAP == 0)		//Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
-    		    				NNres.setText("No APs data");					
+    		    			if(firstAP == 0 || secondAP == 0)			//Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
+    		    			{	
+    		    				NNres.setText("No APs data");
+    		    				scanResult.setText("Wait for scan");
+    		    				Toast.makeText(getApplicationContext(), "No APs data", Toast.LENGTH_SHORT).show();
+    		    			}
     		    			else
     		    				CheckLocation();		//Funzione che computa la posizione e la stampa a schermo 
     		    			
@@ -349,7 +353,7 @@ public class MainActivity extends Activity {
 		catch (NullPointerException e)  {e.printStackTrace();} 
 		catch (FileNotFoundException e) {e.printStackTrace();} 
 		catch (NumberFormatException e) {e.printStackTrace();}
-		catch (IOException e) {e.printStackTrace();}
+		catch (IOException e) 			{e.printStackTrace();}
 		
 		if(NNxCord == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
 		{
