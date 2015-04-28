@@ -28,7 +28,12 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+
 public class MainActivity extends Activity {	
+	
+	public static final int K = 2;
+	public static final int APs = 2;
 
 //--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
@@ -54,15 +59,16 @@ public class MainActivity extends Activity {
 	private boolean buttonPress = false; 						//Permette di ignorare gli intent in broadcast di sistema
 	private int scanNumber;										//Memorizza le scansioni da effettuare
 	private int scanInterval;									//Intervallo tra ogni scansione
+	private int firstAP,secondAP;								//RSSI di ciascun AP
 	private boolean isFirstScan;								//Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;					//Memorizza i risultati temporanei ottenuti dalle scansioni
-	private int firstAP,secondAP;								//RSSI di ciascun AP
 	private int count; 											//Conta le scansioni effettuate	per ogni operazione
 	private boolean wifiIsDisabled;								//Controlla all'avvio se il Wifi era disabilitato
 	private WifiManager mWifiManager = null;
 	private Context context = null;
 	private File file;
     private View view;
+    private int[][] Results;
 		
 //--------------------------------------------------------------------------------------------------------------
 	
@@ -318,10 +324,17 @@ public class MainActivity extends Activity {
     }
     
     public void CheckLocation()									//Mostra a schermo la posizione attuale
-    {   	
-    	int distance = Integer.MAX_VALUE;						
-    	int NNxCord = -1;
-		int NNyCord = -1;
+    {
+    	int l,h;
+		Results = new int[K][2+APs];
+		
+		for(l=0;l<K;l++)
+			for(h=0;h<3;h++)
+				Results[l][h] = -1;
+		
+		for (l=0;l<K;l++)
+			Results[l][2] = Integer.MAX_VALUE;
+			
     	
 		try 
 		{			
@@ -338,14 +351,29 @@ public class MainActivity extends Activity {
 				{
 					splittedInt[i] = Integer.parseInt(splittedString[i]);				//Splitto la stringa del txt in int[]
 				}																		//[0]=X, [1]=Y, [2]=AP1, [3]=AP2
-
-				if((Math.abs(splittedInt[2] - firstAP) + Math.abs(splittedInt[3] - secondAP)) < distance) // Metodo NN
-				{
-					NNxCord = splittedInt[0];
-					NNyCord = splittedInt[1];
-					distance = (Math.abs(splittedInt[2] - firstAP) + Math.abs(splittedInt[3] - secondAP));					
-				}
 				
+				int distance = (Math.abs(splittedInt[2] - firstAP) + (Math.abs(splittedInt[2] - secondAP)));
+				splittedInt[2] = distance;
+				
+				if(distance < Results[0][2])
+				{
+					for(int i=0;i<K-1;i++)
+					{
+						Results[K-1-i] = Results[K-2-i];
+					}
+					Results[0] = splittedInt;			
+				}
+				for(int m=0;m<K-1;m++)
+				{
+					if(distance > Results[m][2] && distance < Results[m+1][2])
+					{
+						for(int i=0;i<K-2;i++)
+						{
+							Results[K-1-i] = Results[K-2-i];
+						}
+						Results[m+1] = splittedInt;
+					}
+				}								
 			}
 		    		    
 		    fileReader.close();		    												//Chiudo il reader
@@ -354,19 +382,67 @@ public class MainActivity extends Activity {
 		catch (FileNotFoundException e) {e.printStackTrace();} 
 		catch (NumberFormatException e) {e.printStackTrace();}
 		catch (IOException e) 			{e.printStackTrace();}
-		
-		if(NNxCord == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
+						
+		if(Results[0][2] == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
 		{
 			Toast.makeText(getApplicationContext(), "File scansioni vuoto", Toast.LENGTH_SHORT).show();
 			NNres.setText("Error");
+			KNNres.setText("Error");
+			WKNNres.setText("Error");
 			scanResult.setText("Wait for scan");
 		}
 		else											//Stampo a schermo i risultati
 		{
-			NNres.setText("X --> " + NNxCord + "  -  Y --> " + NNyCord);
+			NNMethod(Results);
+			KNNMethod(Results);
+			WKNNMethod(Results);
 			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_SHORT).show();
 			scanResult.setText("Wait for scan");
 		}
+    }
+    
+    public void NNMethod(int[][] results)
+    {
+    	NNres.setText("X --> " + results[0][0] + "  -  Y --> " + results[0][1]);
+    }
+    
+    public void KNNMethod(int[][] results)
+    {
+    	float sumX = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumX = sumX + results[i][0];
+    	}
+    	float sumY = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumY = sumY + results[i][1];
+    	}
+    	KNNres.setText("X --> " + String.format("%.3f", sumX/K) + "  -  Y --> " + String.format("%.3f", sumY/K));   	
+    }
+    
+    public void WKNNMethod(int[][] results)
+    {
+    	float sumX = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumX = (float) (sumX + results[i][0]*(1/(Math.pow(results[i][2], 2))));
+    	}
+    	
+    	float sumY = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumY = (float) (sumY + results[i][1]*(1/(Math.pow(results[i][2], 2))));
+    	}
+    	
+    	float peso = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		peso = (float) (peso + (1/(Math.pow(results[i][2], 2))));
+    	}
+    	  	  	
+    	WKNNres.setText("X --> " + String.format("%.3f", sumX/peso) + "  -  Y --> " + String.format("%.3"
+    			+ "f", sumX/peso));   	
     }
     
     public void CheckFile()										//Controlla l'esistenza del file radioMap.txt

@@ -163,7 +163,7 @@
         android:layout_alignLeft="@+id/scannum"
         android:layout_below="@+id/y_coord_tx"
         android:layout_marginTop="20dp"
-        android:text="NN Method position: "
+        android:text="NN Method: "
         android:visibility="gone" />
 
     <TextView
@@ -173,7 +173,7 @@
         android:layout_alignLeft="@+id/scannum"
         android:layout_below="@+id/NN_tx"
         android:layout_marginTop="10dp"
-        android:text="K-NN Method position: "
+        android:text="K-NN Method: "
         android:visibility="gone" />
 
     <TextView
@@ -183,7 +183,7 @@
         android:layout_alignLeft="@+id/scannum"
         android:layout_below="@+id/K_NN_tx"
         android:layout_marginTop="10dp"
-        android:text="WK-NN Method position: "
+        android:text="WK-NN Method: "
         android:visibility="gone" />
 
     <TextView
