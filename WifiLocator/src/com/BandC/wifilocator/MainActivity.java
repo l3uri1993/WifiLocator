@@ -141,7 +141,6 @@ public class MainActivity extends Activity {
     		    		
     		    		CheckFile("config.txt");   		    		
     		    		String stringResult;
-    		    		String stringCatched;
 	    				boolean nextAp = false;
 	    				boolean stopReader = false;	
 	    				StringBuilder line = new StringBuilder();
@@ -162,21 +161,18 @@ public class MainActivity extends Activity {
     		    				line.append(stringResult);
     		    				if(nextAp == false)
     		    				{
-    		    					stringCatched = (wifiList.get(i).BSSID);
-    		    					if((stringCatched.equals(stringResult)) == false)
+    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
     		    						continue;
     		    					else
     		    					{
     		    						nextAp = true;
-    		    						firstAP = firstAP + wifiList.get(i).level; 							
-    		    						    		    													  		    							
+    		    						firstAP = firstAP + wifiList.get(i).level; 							   		    						    		    													  		    							
     		    						break;
     		    					}
     		    				}
     		    				else
     		    				{
-    		    					stringCatched = (wifiList.get(i).BSSID);
-    		    					if((stringCatched.equals(stringResult)) == false)
+    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
     		    						continue;
     		    					else
     		    					{
@@ -193,7 +189,7 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + "of  " + scanNumber);
+    		    			scanResult.setText("Scan number " + scancount + "of   " + scanNumber);
     		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
     		    			handler.postDelayed(new Runnable() 
     		    			{
@@ -241,7 +237,6 @@ public class MainActivity extends Activity {
     		    		
     		    		CheckFile("config.txt");
     		    		String stringResult;
-    		    		String stringCatched;
 	    				boolean nextAp = false;
 	    				boolean stopReader = false;	
 	    				StringBuilder line = new StringBuilder();
@@ -261,22 +256,19 @@ public class MainActivity extends Activity {
     		    			{
     		    				line.append(stringResult);
     		    				if(nextAp == false)
-    		    				{
-    		    					stringCatched = (wifiList.get(i).BSSID);
-    		    					if((stringCatched.equals(stringResult)) == false)
+    		    				{  		    					
+    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
     		    						continue;
     		    					else
     		    					{
     		    						nextAp = true;
-    		    						firstAP = firstAP + wifiList.get(i).level; 							
-    		    						    		    													  		    							
+    		    						firstAP = firstAP + wifiList.get(i).level; 							   		    						    		    													  		    							
     		    						break;
     		    					}
     		    				}
     		    				else
     		    				{
-    		    					stringCatched = (wifiList.get(i).BSSID);
-    		    					if((stringCatched.equals(stringResult)) == false)
+    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
     		    						continue;
     		    					else
     		    					{
@@ -293,7 +285,7 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + "of  " + scanNumber);
+    		    			scanResult.setText("Scan number " + scancount + "of   " + scanNumber);
     		    			Handler handler = new Handler();
     		    			handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
     		    			{		 
@@ -559,9 +551,9 @@ public class MainActivity extends Activity {
         			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt", true);
         			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
         			myOutWriter.append("a0:f3:c1:6c:1e:49\n" );
+           			myOutWriter.append("84:80:2d:c3:a0:72\n" );
         			myOutWriter.append("00:3a:98:7d:4a:c1\n" );
         			myOutWriter.append("00:26:44:74:e9:3e\n" );
-        			myOutWriter.append("84:80:2d:c3:a0:72\n" );
         			myOutWriter.close();        			
         		}
 			}		 
