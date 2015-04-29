@@ -66,7 +66,7 @@ public class MainActivity extends Activity {
 	private boolean wifiIsDisabled;								//Controlla all'avvio se il Wifi era disabilitato
 	private WifiManager mWifiManager = null;
 	private Context context = null;
-	private File file;
+	private File radioMap,config;
     private View view;
     private int[][] Results;
 		
@@ -102,8 +102,10 @@ public class MainActivity extends Activity {
         scanBtn    =  (Button)       findViewById(R.id.scanrbtn);
                    
         context = getApplicationContext();      
-        file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");  //File memorizzato in variabiles        
-        CheckFile(); 							//Crea il file delle scansioni se non esiste
+        radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");  //File memorizzato in variabiles
+        config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
+        CheckFile("radioMap.txt"); 							//Crea il file delle scansioni se non esiste
+        CheckFile("config.txt");
         
 //--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
         
@@ -134,14 +136,56 @@ public class MainActivity extends Activity {
     		    			count = scanNumber - 1;
     		    		}
     				   				
-    		    		wifiList = mWifiManager.getScanResults();   			
+    		    		wifiList = mWifiManager.getScanResults();
+    		    		
+    		    		CheckFile("config.txt");   		    		
+    		    		String stringResult;
+    		    		String stringCatched;
+	    				boolean nextAp = false;
+	    				boolean stopReader = false;	
+	    				StringBuilder line = new StringBuilder();
+	    				BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
+	    												 	
+	    				fileReader.mark(5242880);
+	    				
     		    		for(int i = 0; i < wifiList.size(); i++)
-    		    		{											    					
-    		    			if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true || (wifiList.get(i).BSSID).equals("00:3a:98:7d:4a:c1") == true)    					
-    		    				firstAP = firstAP + wifiList.get(i).level;
-    					
-    		    			if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true || (wifiList.get(i).BSSID).equals("84:80:2d:c3:a0:72") == true)    					
-    		    				secondAP = secondAP + wifiList.get(i).level;    	   					
+    		    		{
+    		    			
+    		    			if (stopReader == true)
+    		    				break;
+    		    			
+    		    			fileReader.reset();
+    		    				
+    		    			while ((stringResult = fileReader.readLine()) != null)
+    		    			{
+    		    				line.append(stringResult);
+    		    				if(nextAp == false)
+    		    				{
+    		    					stringCatched = (wifiList.get(i).BSSID);
+    		    					if((stringCatched.equals(stringResult)) == false)
+    		    						continue;
+    		    					else
+    		    					{
+    		    						nextAp = true;
+    		    						firstAP = firstAP + wifiList.get(i).level; 							
+    		    						    		    													  		    							
+    		    						break;
+    		    					}
+    		    				}
+    		    				else
+    		    				{
+    		    					stringCatched = (wifiList.get(i).BSSID);
+    		    					if((stringCatched.equals(stringResult)) == false)
+    		    						continue;
+    		    					else
+    		    					{
+    		    						stopReader = true;
+    		    						secondAP = secondAP + wifiList.get(i).level; 							
+    		    						fileReader.close();    		    													  		    							
+    		    						break;
+    		    					}
+    		    				}   		    					
+    		    			}	
     		    		}
     		    		
     		    		if (count != 0)
@@ -166,7 +210,7 @@ public class MainActivity extends Activity {
     		    				Toast.makeText(getApplicationContext(), "Error while scanning APs...No result found", Toast.LENGTH_LONG).show();    					
     		    			else
     		    			{
-    		    				CheckFile();			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
+    		    				CheckFile("radioMap.txt");			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
     		    				FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
     		    		    	OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
     		    				myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()) + "          " +  (firstAP/scanNumber) + "          " + (secondAP/scanNumber) + "\n" );
@@ -190,16 +234,57 @@ public class MainActivity extends Activity {
     		    		}
 				
     		    		wifiList = mWifiManager.getScanResults();
-			
+    		    		
+    		    		CheckFile("config.txt");
+    		    		String stringResult;
+    		    		String stringCatched;
+	    				boolean nextAp = false;
+	    				boolean stopReader = false;	
+	    				StringBuilder line = new StringBuilder();
+	    				BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
+	    												 	
+	    				fileReader.mark(5242880);
+	    				
     		    		for(int i = 0; i < wifiList.size(); i++)
-    		    		{											    					
-    		    			if((wifiList.get(i).BSSID).equals("a0:f3:c1:6c:1e:49") == true || (wifiList.get(i).BSSID).equals("00:3a:98:7d:4a:c1") == true)    					
-    		    				firstAP = firstAP + wifiList.get(i).level;
+    		    		{
     		    			
-    		    			if((wifiList.get(i).BSSID).equals("00:26:44:74:e9:3e") == true || (wifiList.get(i).BSSID).equals("84:80:2d:c3:a0:72") == true)    					
-    		    				secondAP = secondAP + wifiList.get(i).level;    	   					
+    		    			if (stopReader == true)
+    		    				break;
+    		    			
+    		    			fileReader.reset();
+    		    				
+    		    			while ((stringResult = fileReader.readLine()) != null)
+    		    			{
+    		    				line.append(stringResult);
+    		    				if(nextAp == false)
+    		    				{
+    		    					stringCatched = (wifiList.get(i).BSSID);
+    		    					if((stringCatched.equals(stringResult)) == false)
+    		    						continue;
+    		    					else
+    		    					{
+    		    						nextAp = true;
+    		    						firstAP = firstAP + wifiList.get(i).level; 							
+    		    						    		    													  		    							
+    		    						break;
+    		    					}
+    		    				}
+    		    				else
+    		    				{
+    		    					stringCatched = (wifiList.get(i).BSSID);
+    		    					if((stringCatched.equals(stringResult)) == false)
+    		    						continue;
+    		    					else
+    		    					{
+    		    						stopReader = true;
+    		    						secondAP = secondAP + wifiList.get(i).level; 							
+    		    						fileReader.close();    		    													  		    							
+    		    						break;
+    		    					}
+    		    				}   		    					
+    		    			}	
     		    		}
-				
+			
     		    		if (count != 0)
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
@@ -338,7 +423,7 @@ public class MainActivity extends Activity {
     	
 		try 
 		{			
-			BufferedReader fileReader = new BufferedReader(new FileReader(file)); 		//Reader android per leggere stringhe da txt
+			BufferedReader fileReader = new BufferedReader(new FileReader(radioMap)); 		//Reader android per leggere stringhe da txt
 			StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    
 			String stringResult = fileReader.readLine(); 								//Salta la prima linea (è solo testo per indentazione)
 			
@@ -445,26 +530,37 @@ public class MainActivity extends Activity {
     			+ "f", sumX/peso));   	
     }
     
-    public void CheckFile()										//Controlla l'esistenza del file radioMap.txt
-    {        
-        if (file.exists() == false) 
-        {       
-        	try 
+    public void CheckFile(String string)										//Controlla l'esistenza del file radioMap.txt
+    {    
+    	try 
+    	{
+    		if (radioMap.exists() == false) 
+    		{       
+        			radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");
+        			radioMap.createNewFile();			
+        			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt", true);
+        			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+        			myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
+        			myOutWriter.close(); 
+        			fOut.close();
+    		}
+        	if(config.exists() == false)
         	{
-                file = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");
-                file.createNewFile();			
-                FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt", true);
-				OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-				myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
-				myOutWriter.close(); 
-				fOut.close();				
+        			config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
+        			config.createNewFile();			
+        			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt", true);
+        			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" );
+        			myOutWriter.append("00:3a:98:7d:4a:c1\n" );
+        			myOutWriter.append("00:26:44:74:e9:3e\n" );
+        			myOutWriter.append("84:80:2d:c3:a0:72\n" );
+        			myOutWriter.close();        			
+        		}
 			}		 
         	catch (NullPointerException e)  {e.printStackTrace();} 
         	catch (FileNotFoundException e) {e.printStackTrace();} 
         	catch (IOException e) {e.printStackTrace();}						        
         }
-        else{}
-    }
     
 @Override
 	protected void onDestroy() 
