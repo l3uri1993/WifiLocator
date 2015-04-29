@@ -69,6 +69,7 @@ public class MainActivity extends Activity {
 	private File radioMap,config;
     private View view;
     private int[][] Results;
+    private int scancount = 1;
 		
 //--------------------------------------------------------------------------------------------------------------
 	
@@ -191,6 +192,8 @@ public class MainActivity extends Activity {
     		    		if (count != 0)
     		    		{
     		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
+    		    			scancount = scancount + 1;
+    		    			scanResult.setText("Scan number " + scancount + "of  " + scanNumber);
     		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
     		    			handler.postDelayed(new Runnable() 
     		    			{
@@ -220,6 +223,7 @@ public class MainActivity extends Activity {
     		    			}
     		    			firstAP = 0;
     		    			secondAP = 0;
+    		    			scancount = 1;
     		    			scanResult.setText("Wait for scan");
     		    			EnableButtons();							//Risultati computati, posso riabilito tutte le funzioni
     		    		}			    			
@@ -288,6 +292,8 @@ public class MainActivity extends Activity {
     		    		if (count != 0)
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
+    		    			scancount = scancount + 1;
+    		    			scanResult.setText("Scan number " + scancount + "of  " + scanNumber);
     		    			Handler handler = new Handler();
     		    			handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
     		    			{		 
@@ -316,6 +322,7 @@ public class MainActivity extends Activity {
     		    			
     		    			firstAP = 0;				//Computata la posizione, reinizializzo le variabili e abilito tutte le funzioni
     		    			secondAP = 0;
+    		    			scancount = 1;
     		    			EnableButtons();
     		    		}			    	   			   			
     		    	}   		
@@ -355,7 +362,6 @@ public class MainActivity extends Activity {
     public void StartScan (View view) 							//Si avvia al premere del pulsante di scansione
     {					   	
     	DisableButtons();   
-    	scanResult.setText("Scanning...");
     	isFirstScan = true;
        	buttonPress = true;
     	   	    	   	
@@ -371,6 +377,8 @@ public class MainActivity extends Activity {
     		scanInterval = Integer.parseInt(scanIntEd.getText().toString()); 
     	}
     	catch (NumberFormatException e) {e.printStackTrace();}
+    	
+    	scanResult.setText("Scan number " + scancount + "of " + scanNumber);
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));   		
     	mWifiManager.startScan();    		    		    
