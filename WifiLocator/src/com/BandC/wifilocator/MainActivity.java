@@ -103,6 +103,7 @@ public class MainActivity extends Activity {
         context = getApplicationContext();      
         radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");  //File memorizzato in variabiles
         config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
+        
         CheckFile("radioMap.txt"); 							//Crea il file delle scansioni se non esiste
         CheckFile("config.txt");
         
@@ -146,7 +147,7 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + "  of  " + scanNumber);
+    		    			scanResult.setText("Scan number " + scancount + " of " + scanNumber);
     		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
     		    			handler.postDelayed(new Runnable() 
@@ -195,7 +196,7 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + "of   " + scanNumber);
+    		    			scanResult.setText("Scan number " + scancount + " of " + scanNumber);
     		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			Handler handler = new Handler();
     		    			handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
@@ -278,7 +279,7 @@ public class MainActivity extends Activity {
     	}
     	catch (NumberFormatException e) {e.printStackTrace();}
     	
-    	scanResult.setText("Scan number " + scancount + "of " + scanNumber);
+    	scanResult.setText("Scan number " + scancount + " of " + scanNumber);
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));   		
     	mWifiManager.startScan();    		    		    
