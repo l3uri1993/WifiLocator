@@ -61,10 +61,10 @@ public class MainActivity extends Activity {
 	private int firstAP,secondAP;				///RSSI di ciascun AP
 	private boolean isFirstScan;				///Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;	///Memorizza i risultati temporanei ottenuti dalle scansioni
-	private int count; 							///Conta le scansioni effettuate	per ogni operazione
+	private int count; 							///Conta le scansioni effettuate per ogni operazione
 	private boolean wifiIsDisabled;				///Controlla all'avvio se il Wifi era disabilitato
 	private File radioMap,config;				///Variabili per i file   
-    private int[][] Results;					///Contiene coordinate e distanze calcolate
+    private int[][] Results = null;				///Contiene coordinate e distanze calcolate
     private int scancount = 1;					///Contatore scansioni effettuate
     private View view;
 	private WifiManager mWifiManager = null;
@@ -149,15 +149,7 @@ public class MainActivity extends Activity {
     		    			scancount = scancount + 1;
     		    			scanResult.setText("Scan number " + scancount + " of " + scanNumber);
     		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
-    		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
-    		    			handler.postDelayed(new Runnable() 
-    		    			{
-    		    				public void run() 
-    		    				{
-    		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
-    	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive   	    		    			
-    		    			    }
-    		    			}, scanInterval*1000);
+    		    			StartNewScan();
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
 
     		    		}
@@ -198,15 +190,7 @@ public class MainActivity extends Activity {
     		    			scancount = scancount + 1;
     		    			scanResult.setText("Scan number " + scancount + " of " + scanNumber);
     		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
-    		    			Handler handler = new Handler();
-    		    			handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
-    		    			{		 
-    		    			    public void run() 
-    		    			    {
-    		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
-    	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
-    		    			    }
-    		    			}, scanInterval*1000);
+    		    			StartNewScan();
     		    			return;						 				//Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
     		    		}
     		    		else
@@ -323,21 +307,20 @@ public class MainActivity extends Activity {
     private void CheckLocation()
 
     {
-    	int l,h;
 		Results = new int[K][4];
 		
-		for(l=0;l<K;l++)
-			for(h=0;h<3;h++)
+		for(int l=0;l<K;l++)
+			for(int h=0;h<3;h++)
 				Results[l][h] = -1;
 		
-		for (l=0;l<K;l++)
+		for (int l=0;l<K;l++)
 			Results[l][2] = Integer.MAX_VALUE;
 			  	
 		EvaluateDistances();						
 						
 		if(Results[0][0] == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
 		{
-			Toast.makeText(getApplicationContext(), "File scansioni vuoto", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), "File scansioni vuoto o fingerprints inferiori a K", Toast.LENGTH_SHORT).show();
 			NNres.setText("Error");
 			KNNres.setText("Error");
 			WKNNres.setText("Error");
@@ -374,10 +357,10 @@ public class MainActivity extends Activity {
         			config.createNewFile();			
         			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt", true);
         			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" );
-           			myOutWriter.append("84:80:2d:c3:a0:72\n" );
-        			myOutWriter.append("00:3a:98:7d:4a:c1\n" );
-        			myOutWriter.append("00:26:44:74:e9:3e\n" );
+        			myOutWriter.append("00:3a:98:7d:4a:c2\n" ); //----->genuawifi infal			
+        			myOutWriter.append("00:3a:98:7d:4a:c1\n" ); //----->eduroam infal (da risultato praticamente uguale a sopra)
+        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" ); //----->casa 1         			
+        			myOutWriter.append("00:26:44:74:e9:3e\n" ); //----->casa 2
         			myOutWriter.close();        			
         		}
 			}		 
@@ -443,11 +426,9 @@ public class MainActivity extends Activity {
 			boolean stopReader = false;	
 			StringBuilder line = new StringBuilder();
 			BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
-										 	
-		
-			fileReader.mark(5242880);
-		
-		
+										 			
+			fileReader.mark(Integer.MAX_VALUE); ///Segnaposto a inizio file per successive riletture dall'inizio
+				
 			for(int i = 0; i < wifiList.size(); i++)
 			{
 			
@@ -507,9 +488,10 @@ public class MainActivity extends Activity {
     {
     	try 
 		{			
-			BufferedReader fileReader = new BufferedReader(new FileReader(radioMap)); 		//Reader android per leggere stringhe da txt
+			BufferedReader fileReader = new BufferedReader(new FileReader(radioMap)); 	//Reader android per leggere stringhe da txt
 			StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    
 			String stringResult = fileReader.readLine(); 								//Salta la prima linea (è solo testo per indentazione)
+			int control = 0;
 			
 		    while ((stringResult = fileReader.readLine()) != null)
 			{
@@ -524,11 +506,11 @@ public class MainActivity extends Activity {
 				int distance = (Math.abs(splittedInt[2] - firstAP) + (Math.abs(splittedInt[2] - secondAP)));
 				splittedInt[2] = distance;
 				
-				if(distance < Results[0][2])
-				{
-					for(int i=0;i<K-1;i++)
-					{
-						Results[K-1-i] = Results[K-2-i];
+				if(distance < Results[0][2])							//Elabora le K minori distanze
+				{														//Results[A][B] --> A = kappesimo risultato
+					for(int i=0;i<K-1;i++)								//					B = 0 ----> Cord X
+					{													//						1 ----> Cord Y
+						Results[K-1-i] = Results[K-2-i];				//						2 ----> Distanza
 					}
 					Results[0] = splittedInt;			
 				}
@@ -542,15 +524,33 @@ public class MainActivity extends Activity {
 						}
 						Results[m+1] = splittedInt;
 					}
-				}								
+				}
+				control++;
 			}
 		    		    
-		    fileReader.close();		    												//Chiudo il reader
+		    fileReader.close();	    												//Chiudo il reader
+		    
+		    if (control < K)				///se ci sono meno di K record nel file txt, invalido il risultato
+		    	Results[0][0] = -1;
 		} 
 		catch (NullPointerException e)  {e.printStackTrace();} 
 		catch (FileNotFoundException e) {e.printStackTrace();} 
 		catch (NumberFormatException e) {e.printStackTrace();}
 		catch (IOException e) 			{e.printStackTrace();}
+    }
+    
+    ///Attende l'intervallo richiesto dall'utente e fa partire una scansione
+    private void StartNewScan()
+    {
+    	Handler handler = new Handler();
+		handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
+		{		 
+		    public void run() 
+		    {
+		    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
+    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
+		    }
+		}, scanInterval*1000);
     }
     
     ///Chiusura App
