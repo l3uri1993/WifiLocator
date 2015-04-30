@@ -1780,6 +1780,8 @@ containing a value of this type.
         public static final int wifi=0x7f0c0001;
     }
     public static final class string {
+        public static final int Engineers=0x7f0a0015;
+        public static final int Title=0x7f0a0014;
         /**  Content description for the action bar "home" affordance. [CHAR LIMIT=NONE] 
          */
         public static final int abc_action_bar_home_description=0x7f0a0001;

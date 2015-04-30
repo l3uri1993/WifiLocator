@@ -11,8 +11,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-         android:layout_marginTop="8dp"
-        android:text="Wifi Locator"
+        android:layout_marginTop="8dp"
+        android:text="@string/Title"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -21,9 +21,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/textView1"
+        android:layout_marginStart="14dp"
         android:layout_marginLeft="14dp"
         android:layout_marginTop="25dp"
-        android:text="Dario Bacigalupo and Emmanuel Crova" />
+        android:text="@string/Engineers" />
 
     <TextView
         android:id="@+id/textView3"

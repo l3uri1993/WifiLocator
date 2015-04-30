@@ -28,17 +28,14 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+public class MainActivity extends Activity {
 
-
-public class MainActivity extends Activity {	
+///--------------------------------------------------------------COSTANTI DEFINITE----------------------------------
 	
-	public static final int K = 2;
-	public static final int APs = 2;
+	public static final int K = 2;				///Definisce il valore K dei metodi K-NN e WK-NN
 
-//--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
+///--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
-	private RadioButton trainBtn;
-	private RadioButton posBtn;
 	private TextView 	xCordView;
 	private TextView 	yCordView;
 	private TextView	scanResult;
@@ -53,28 +50,29 @@ public class MainActivity extends Activity {
 	private EditText 	scanNum;
 	private EditText    scanIntEd;
 	private Button 	    scanBtn;
+	private RadioButton trainBtn;
+	private RadioButton posBtn;
 	
-//--------------------------------------------------------------VARIABILI PER JAVA--------------------------------------
+///---------------------------------------------------------------VARIABILI PER JAVA--------------------------------------
 	
-	private boolean buttonPress = false; 						//Permette di ignorare gli intent in broadcast di sistema
-	private int scanNumber;										//Memorizza le scansioni da effettuare
-	private int scanInterval;									//Intervallo tra ogni scansione
-	private int firstAP,secondAP;								//RSSI di ciascun AP
-	private boolean isFirstScan;								//Permette al Receiver di sapere se è stato appena premuto il bottone
-	private List<ScanResult> wifiList = null;					//Memorizza i risultati temporanei ottenuti dalle scansioni
-	private int count; 											//Conta le scansioni effettuate	per ogni operazione
-	private boolean wifiIsDisabled;								//Controlla all'avvio se il Wifi era disabilitato
+	private boolean buttonPress = false; 		///Permette di ignorare gli intent in broadcast di sistema
+	private int scanNumber;						///Memorizza le scansioni da effettuare
+	private int scanInterval;					///Intervallo tra ogni scansione
+	private int firstAP,secondAP;				///RSSI di ciascun AP
+	private boolean isFirstScan;				///Permette al Receiver di sapere se è stato appena premuto il bottone
+	private List<ScanResult> wifiList = null;	///Memorizza i risultati temporanei ottenuti dalle scansioni
+	private int count; 							///Conta le scansioni effettuate	per ogni operazione
+	private boolean wifiIsDisabled;				///Controlla all'avvio se il Wifi era disabilitato
+	private File radioMap,config;				///Variabili per i file   
+    private int[][] Results;					///Contiene coordinate e distanze calcolate
+    private int scancount = 1;					///Contatore scansioni effettuate
+    private View view;
 	private WifiManager mWifiManager = null;
 	private Context context = null;
-	private File radioMap,config;
-    private View view;
-    private int[][] Results;
-    private int scancount = 1;
-		
-//--------------------------------------------------------------------------------------------------------------
 	
+	///Apertura App
     @Override
-    protected void onCreate(Bundle savedInstanceState) 
+    protected void onCreate(Bundle savedInstanceState)
     {
    
         super.onCreate(savedInstanceState);
@@ -117,19 +115,20 @@ public class MainActivity extends Activity {
     	
 //-----------------------------------------------------------------------------------------------------------------------
     }
-       
-    BroadcastReceiver wifiReceiver = new BroadcastReceiver()	//Receiver in Broadcast per le scansioni wifi
+    
+    ///Receiver in Broadcast per le scansioni wifi    
+    BroadcastReceiver wifiReceiver = new BroadcastReceiver()
     {
         @Override
         public void onReceive(Context c, Intent intent) 
         {
         	try 
     		{
-        		unregisterReceiver(wifiReceiver);					//Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
+        		unregisterReceiver(wifiReceiver);					///Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
     		    		
-    		    if (buttonPress == true)							//Determina che la scansione sia inviata dall'utente
+    		    if (buttonPress == true)							///Determina che la scansione sia inviata dall'utente
     		    {		   		   						    		   		    	    								
-    		    	if(trainBtn.isChecked() == true)//---------------------------->Modalità TRAIN
+    		    	if(trainBtn.isChecked() == true)///---------------------------->Modalità TRAIN
     		    	{				   			
     		    		if(isFirstScan == true)
     		    		{
@@ -139,65 +138,23 @@ public class MainActivity extends Activity {
     				   				
     		    		wifiList = mWifiManager.getScanResults();
     		    		
-    		    		CheckFile("config.txt");   		    		
-    		    		String stringResult;
-	    				boolean nextAp = false;
-	    				boolean stopReader = false;	
-	    				StringBuilder line = new StringBuilder();
-	    				BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
-	    												 	
-	    				fileReader.mark(5242880);
-	    				
-    		    		for(int i = 0; i < wifiList.size(); i++)
-    		    		{
-    		    			
-    		    			if (stopReader == true)
-    		    				break;
-    		    			
-    		    			fileReader.reset();
-    		    				
-    		    			while ((stringResult = fileReader.readLine()) != null)
-    		    			{
-    		    				line.append(stringResult);
-    		    				if(nextAp == false)
-    		    				{
-    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
-    		    						continue;
-    		    					else
-    		    					{
-    		    						nextAp = true;
-    		    						firstAP = firstAP + wifiList.get(i).level; 							   		    						    		    													  		    							
-    		    						break;
-    		    					}
-    		    				}
-    		    				else
-    		    				{
-    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
-    		    						continue;
-    		    					else
-    		    					{
-    		    						stopReader = true;
-    		    						secondAP = secondAP + wifiList.get(i).level; 							
-    		    						fileReader.close();    		    													  		    							
-    		    						break;
-    		    					}
-    		    				}   		    					
-    		    			}	
-    		    		}
+    		    		CheckFile("config.txt");
+    		    		
+    		    		ComputeRSSI();
     		    		
     		    		if (count != 0)
     		    		{
     		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + "of   " + scanNumber);
+    		    			scanResult.setText("Scan number " + scancount + "  of  " + scanNumber);
+    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			Handler handler = new Handler();					 //Attende lo scan interval per lanciare la nuova scansione
     		    			handler.postDelayed(new Runnable() 
     		    			{
     		    				public void run() 
     		    				{
     		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
-    	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
-    	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
+    	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive   	    		    			
     		    			    }
     		    			}, scanInterval*1000);
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
@@ -217,11 +174,6 @@ public class MainActivity extends Activity {
         		    			myOutWriter.close();
         		    			fOut.close();																//Chiuso lo stream correttamente
     		    			}
-    		    			firstAP = 0;
-    		    			secondAP = 0;
-    		    			scancount = 1;
-    		    			scanResult.setText("Wait for scan");
-    		    			EnableButtons();							//Risultati computati, posso riabilito tutte le funzioni
     		    		}			    			
     		    	}
     		    	
@@ -236,56 +188,15 @@ public class MainActivity extends Activity {
     		    		wifiList = mWifiManager.getScanResults();
     		    		
     		    		CheckFile("config.txt");
-    		    		String stringResult;
-	    				boolean nextAp = false;
-	    				boolean stopReader = false;	
-	    				StringBuilder line = new StringBuilder();
-	    				BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
-	    												 	
-	    				fileReader.mark(5242880);
-	    				
-    		    		for(int i = 0; i < wifiList.size(); i++)
-    		    		{
-    		    			
-    		    			if (stopReader == true)
-    		    				break;
-    		    			
-    		    			fileReader.reset();
-    		    				
-    		    			while ((stringResult = fileReader.readLine()) != null)
-    		    			{
-    		    				line.append(stringResult);
-    		    				if(nextAp == false)
-    		    				{  		    					
-    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
-    		    						continue;
-    		    					else
-    		    					{
-    		    						nextAp = true;
-    		    						firstAP = firstAP + wifiList.get(i).level; 							   		    						    		    													  		    							
-    		    						break;
-    		    					}
-    		    				}
-    		    				else
-    		    				{
-    		    					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
-    		    						continue;
-    		    					else
-    		    					{
-    		    						stopReader = true;
-    		    						secondAP = secondAP + wifiList.get(i).level; 							
-    		    						fileReader.close();    		    													  		    							
-    		    						break;
-    		    					}
-    		    				}   		    					
-    		    			}	
-    		    		}
-			
+    		    		
+    		    		ComputeRSSI();
+   		    		  		    		   		    		   		    		    		    				
     		    		if (count != 0)
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
     		    			scanResult.setText("Scan number " + scancount + "of   " + scanNumber);
+    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			Handler handler = new Handler();
     		    			handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
     		    			{		 
@@ -293,7 +204,6 @@ public class MainActivity extends Activity {
     		    			    {
     		    			    	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)); //Reinizializzo il receiver per la prossima scansione
     	    		    			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
-    	    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			    }
     		    			}, scanInterval*1000);
     		    			return;						 				//Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
@@ -303,33 +213,29 @@ public class MainActivity extends Activity {
     		    			firstAP = (firstAP/scanNumber);
     		    			secondAP = (secondAP/scanNumber);
     		    			
-    		    			if(firstAP == 0 || secondAP == 0)			//Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
+    		    			if(firstAP == 0 || secondAP == 0)			///Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
     		    			{	
     		    				NNres.setText("No APs data");
     		    				scanResult.setText("Wait for scan");
     		    				Toast.makeText(getApplicationContext(), "No APs data", Toast.LENGTH_SHORT).show();
     		    			}
     		    			else
-    		    				CheckLocation();		//Funzione che computa la posizione e la stampa a schermo 
-    		    			
-    		    			firstAP = 0;				//Computata la posizione, reinizializzo le variabili e abilito tutte le funzioni
-    		    			secondAP = 0;
-    		    			scancount = 1;
-    		    			EnableButtons();
+    		    				CheckLocation();		//Funzione che computa la posizione e la stampa a schermo    		    			 		    			
     		    		}			    	   			   			
-    		    	}   		
-    		    	buttonPress = false;  				//Cambio lo stato del bottone per ignorare scansioni di sistema  		    		
+    		    	}   		    	
+    		    	ResetVar();    						///Resetto variabili per prossima operazione		    	  		    		
     		    }
     		    else{}//------------------------------------------------>La scansione è stata inviata dal sistema e va ignorata
     		}
     		catch (NullPointerException e)  {e.printStackTrace();} 
     		catch (FileNotFoundException e) {e.printStackTrace();} 
     		catch (NumberFormatException e) {e.printStackTrace();}
-    		catch (IOException e) {e.printStackTrace();}         	
+    		catch (IOException e) 			{e.printStackTrace();}         	
         }
     };
-    	  
-    public void EnableButtons()								    //Abilita tutti gli elementi editabili concluse le operazioni
+    
+    ///Abilita tutti gli elementi editabili concluse le operazioni    
+    private void EnableButtons()
     {
     	scanBtn.setClickable(true);
     	xCordText.setEnabled(true);
@@ -339,8 +245,9 @@ public class MainActivity extends Activity {
         posBtn.setClickable(true);
         scanIntEd.setEnabled(true);
     }
-    
-    public void DisableButtons() 								//Disabilita tutti gli elementi editabili per completare le operazioni
+   
+    ///Disabilita tutti gli elementi editabili per completare le operazioni    
+    private void DisableButtons()
     {
     	scanBtn.setClickable(false);
     	xCordText.setEnabled(false);
@@ -351,7 +258,8 @@ public class MainActivity extends Activity {
         scanIntEd.setEnabled(false);
     }
     
-    public void StartScan (View view) 							//Si avvia al premere del pulsante di scansione
+    ///Si avvia al premere del pulsante di scansione      
+    public void StartScan (View view)
     {					   	
     	DisableButtons();   
     	isFirstScan = true;
@@ -376,7 +284,8 @@ public class MainActivity extends Activity {
     	mWifiManager.startScan();    		    		    
     }  
 
-    public void Posclick (View view) 							//Nasconde alcuni elementi come da specifica
+    ///Nasconde alcuni elementi come da specifica    
+    public void Posclick (View view)
     {							
     	xCordView.setVisibility(View.GONE); 
     	yCordView.setVisibility(View.GONE);
@@ -391,8 +300,9 @@ public class MainActivity extends Activity {
     	scanResult.setVisibility(View.VISIBLE);
     	trainBtn.setChecked(false);
     }
-
-    public void Trainclick (View view) 							//Abilita alcuni elementi come da specifica
+    
+    ///Abilita alcuni elementi come da specifica   
+    public void Trainclick (View view)
     {																
     	xCordView.setVisibility(View.VISIBLE);
     	yCordView.setVisibility(View.VISIBLE);
@@ -407,11 +317,13 @@ public class MainActivity extends Activity {
 		scanResult.setText("Wait for scan");
 		posBtn.setChecked(false);  	
     }
-    
-    public void CheckLocation()									//Mostra a schermo la posizione attuale
+   
+    ///Computa la posizione attuale   
+    private void CheckLocation()
+
     {
     	int l,h;
-		Results = new int[K][2+APs];
+		Results = new int[K][4];
 		
 		for(l=0;l<K;l++)
 			for(h=0;h<3;h++)
@@ -419,9 +331,180 @@ public class MainActivity extends Activity {
 		
 		for (l=0;l<K;l++)
 			Results[l][2] = Integer.MAX_VALUE;
-			
+			  	
+		EvaluateDistances();						
+						
+		if(Results[0][0] == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
+		{
+			Toast.makeText(getApplicationContext(), "File scansioni vuoto", Toast.LENGTH_SHORT).show();
+			NNres.setText("Error");
+			KNNres.setText("Error");
+			WKNNres.setText("Error");
+			scanResult.setText("Wait for scan");
+		}
+		else											//Stampo a schermo i risultati
+		{
+			NNMethod(Results);
+			KNNMethod(Results);
+			WKNNMethod(Results);
+			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_SHORT).show();
+			scanResult.setText("Wait for scan");
+		}
+    }
+   
+    ///Controlla l'esistenza del file  
+    private void CheckFile(String string)
+    {    
+    	try 
+    	{
+    		if (radioMap.exists() == false) 
+    		{       
+        			radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");
+        			radioMap.createNewFile();			
+        			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt", true);
+        			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+        			myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
+        			myOutWriter.close(); 
+        			fOut.close();
+    		}
+        	if(config.exists() == false)
+        	{
+        			config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
+        			config.createNewFile();			
+        			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt", true);
+        			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" );
+           			myOutWriter.append("84:80:2d:c3:a0:72\n" );
+        			myOutWriter.append("00:3a:98:7d:4a:c1\n" );
+        			myOutWriter.append("00:26:44:74:e9:3e\n" );
+        			myOutWriter.close();        			
+        		}
+			}		 
+        	catch (NullPointerException e)  {e.printStackTrace();} 
+        	catch (FileNotFoundException e) {e.printStackTrace();} 
+        	catch (IOException e) {e.printStackTrace();}						        
+        }
+    
+    ///Metodo NN   
+    private void NNMethod(int[][] results)
+    {
+    	NNres.setText("X --> " + results[0][0] + "  -  Y --> " + results[0][1]);
+    }
+    
+    ///Metodo K-NN   
+    private void KNNMethod(int[][] results)
+    {
+    	float sumX = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumX = sumX + results[i][0];
+    	}
+    	float sumY = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumY = sumY + results[i][1];
+    	}
+    	KNNres.setText("X --> " + String.format("%.3f", sumX/K) + "  -  Y --> " + String.format("%.3f", sumY/K));   	
+    }
+    
+    ///Metodo WK-NN   
+    private void WKNNMethod(int[][] results)
+    {
+    	float sumX = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumX = (float) (sumX + results[i][0]*(1/(Math.pow(results[i][2], 2))));
+    	}
     	
-		try 
+    	float sumY = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		sumY = (float) (sumY + results[i][1]*(1/(Math.pow(results[i][2], 2))));
+    	}
+    	
+    	float peso = 0;
+    	for (int i=0;i<K;i++)
+    	{
+    		peso = (float) (peso + (1/(Math.pow(results[i][2], 2))));
+    	}
+    	  	  	
+    	WKNNres.setText("X --> " + String.format("%.3f", sumX/peso) + "  -  Y --> " + String.format("%.3"
+    			+ "f", sumX/peso));   	
+    }
+   
+    ///Computa il segnale scansionato
+    private void ComputeRSSI()
+    {
+    	try 
+    	{
+    		String stringResult;
+			boolean nextAp = false;
+			boolean stopReader = false;	
+			StringBuilder line = new StringBuilder();
+			BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
+										 	
+		
+			fileReader.mark(5242880);
+		
+		
+			for(int i = 0; i < wifiList.size(); i++)
+			{
+			
+				if (stopReader == true)
+					break;
+			
+				fileReader.reset();
+				
+				while ((stringResult = fileReader.readLine()) != null)
+				{
+					line.append(stringResult);
+					if(nextAp == false)
+					{  		    					
+						if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
+							continue;
+						else
+						{
+							nextAp = true;
+							firstAP = firstAP + wifiList.get(i).level; 							   		    						    		    													  		    							
+							break;
+						}
+					}
+					else
+					{
+						if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
+							continue;
+						else
+						{
+							stopReader = true;
+							secondAP = secondAP + wifiList.get(i).level; 							
+							fileReader.close();    		    													  		    							
+							break;
+						}
+					}   		    					
+				}	
+			}
+    	}
+    	catch (NullPointerException e)  {e.printStackTrace();} 
+		catch (FileNotFoundException e) {e.printStackTrace();} 
+		catch (NumberFormatException e) {e.printStackTrace();}
+		catch (IOException e) {e.printStackTrace();}
+    }
+    
+    ///Reinizializza tutte le variabili per una prossima operazione
+    private void ResetVar()
+    {
+		firstAP = 0;							
+		secondAP = 0;
+		scancount = 1;
+		scanResult.setText("Wait for scan");
+		EnableButtons();
+		buttonPress = false;  					///Cambio lo stato del bottone per ignorare scansioni di sistema
+    }
+    
+    ///Legge dal file dei record e calcola la matrice delle K minori distanze mettendola in Results[][]
+    private void EvaluateDistances()
+    {
+    	try 
 		{			
 			BufferedReader fileReader = new BufferedReader(new FileReader(radioMap)); 		//Reader android per leggere stringhe da txt
 			StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    
@@ -467,101 +550,9 @@ public class MainActivity extends Activity {
 		catch (FileNotFoundException e) {e.printStackTrace();} 
 		catch (NumberFormatException e) {e.printStackTrace();}
 		catch (IOException e) 			{e.printStackTrace();}
-						
-		if(Results[0][2] == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
-		{
-			Toast.makeText(getApplicationContext(), "File scansioni vuoto", Toast.LENGTH_SHORT).show();
-			NNres.setText("Error");
-			KNNres.setText("Error");
-			WKNNres.setText("Error");
-			scanResult.setText("Wait for scan");
-		}
-		else											//Stampo a schermo i risultati
-		{
-			NNMethod(Results);
-			KNNMethod(Results);
-			WKNNMethod(Results);
-			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_SHORT).show();
-			scanResult.setText("Wait for scan");
-		}
     }
     
-    public void NNMethod(int[][] results)
-    {
-    	NNres.setText("X --> " + results[0][0] + "  -  Y --> " + results[0][1]);
-    }
-    
-    public void KNNMethod(int[][] results)
-    {
-    	float sumX = 0;
-    	for (int i=0;i<K;i++)
-    	{
-    		sumX = sumX + results[i][0];
-    	}
-    	float sumY = 0;
-    	for (int i=0;i<K;i++)
-    	{
-    		sumY = sumY + results[i][1];
-    	}
-    	KNNres.setText("X --> " + String.format("%.3f", sumX/K) + "  -  Y --> " + String.format("%.3f", sumY/K));   	
-    }
-    
-    public void WKNNMethod(int[][] results)
-    {
-    	float sumX = 0;
-    	for (int i=0;i<K;i++)
-    	{
-    		sumX = (float) (sumX + results[i][0]*(1/(Math.pow(results[i][2], 2))));
-    	}
-    	
-    	float sumY = 0;
-    	for (int i=0;i<K;i++)
-    	{
-    		sumY = (float) (sumY + results[i][1]*(1/(Math.pow(results[i][2], 2))));
-    	}
-    	
-    	float peso = 0;
-    	for (int i=0;i<K;i++)
-    	{
-    		peso = (float) (peso + (1/(Math.pow(results[i][2], 2))));
-    	}
-    	  	  	
-    	WKNNres.setText("X --> " + String.format("%.3f", sumX/peso) + "  -  Y --> " + String.format("%.3"
-    			+ "f", sumX/peso));   	
-    }
-    
-    public void CheckFile(String string)										//Controlla l'esistenza del file radioMap.txt
-    {    
-    	try 
-    	{
-    		if (radioMap.exists() == false) 
-    		{       
-        			radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");
-        			radioMap.createNewFile();			
-        			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt", true);
-        			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        			myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
-        			myOutWriter.close(); 
-        			fOut.close();
-    		}
-        	if(config.exists() == false)
-        	{
-        			config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
-        			config.createNewFile();			
-        			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt", true);
-        			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" );
-           			myOutWriter.append("84:80:2d:c3:a0:72\n" );
-        			myOutWriter.append("00:3a:98:7d:4a:c1\n" );
-        			myOutWriter.append("00:26:44:74:e9:3e\n" );
-        			myOutWriter.close();        			
-        		}
-			}		 
-        	catch (NullPointerException e)  {e.printStackTrace();} 
-        	catch (FileNotFoundException e) {e.printStackTrace();} 
-        	catch (IOException e) {e.printStackTrace();}						        
-        }
-    
+    ///Chiusura App
 @Override
 	protected void onDestroy() 
 	{
