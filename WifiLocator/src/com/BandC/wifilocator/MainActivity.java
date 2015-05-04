@@ -61,11 +61,13 @@ public class MainActivity extends Activity {
 	private File radioMap,config;				///Variabili per i file   
     private int[][] Results = null;				///Contiene coordinate e distanze calcolate
     private int scancount = 1;					///Contatore scansioni effettuate
-    private int K,AP;							///Definisce il valore K dei metodi K-NN e WK-NN
+    private int K,AP;							///K definisce il valore K dei metodi K-NN e WK-NN, AP è il numero degli APs
     private View view;
 	private WifiManager mWifiManager = null;
 	private Context context = null;	
 	private int[] APRes = null;
+	
+//------------------------------------------------------------------------------------------------------------------------	
 	
 	///Apertura App
     @Override
@@ -119,98 +121,55 @@ public class MainActivity extends Activity {
         @Override
         public void onReceive(Context c, Intent intent) 
         {
-        	try 
-    		{
-        		unregisterReceiver(wifiReceiver);					///Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
+        	unregisterReceiver(wifiReceiver);					///Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
     		    		
-    		    if (buttonPress == true)							///Determina che la scansione sia inviata dall'utente
-    		    {		   		   						    		   		    	    								
-    		    	if(trainBtn.isChecked() == true)///---------------------------->Modalità TRAIN
-    		    	{				   			
-    		    		if(isFirstScan == true)
-    		    		{
-    		    			isFirstScan = false;
-    		    			count = scanNumber - 1;
-    		    		}
-    				   				
-    		    		wifiList = mWifiManager.getScanResults();
+        	if (buttonPress == true)							///Determina che la scansione sia inviata dall'utente
+        	{		   		   						    		   		    	    								
+        		if(trainBtn.isChecked() == true)///---------------------------->Modalità TRAIN
+       			{				   			
+       				CheckFirstScan();	   						///Controlla se e la prima scansione    		    		
+       				ComputeRSSI();								///Scansiona gli AP presenti e aggiunge il risultato
     		    		
-    		    		CheckFile("config.txt");
-    		    		
-    		    		ComputeRSSI();								///Scansiona gli AP presenti e aggiunge il risultato
-    		    		
-    		    		if (count != 0)
-    		    		{
-    		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
-    		    			scancount = scancount + 1;
-    		    			StartNewScan();
-    		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
-
-    		    		}
-    		    		else
-    		    		{
-    		    			if(APRes[0] == 0 || APRes[AP-1] == 0)    					
-    		    				Toast.makeText(getApplicationContext(), "Error while scanning APs...Some results aren't found", Toast.LENGTH_LONG).show();    					
-    		    			else
-    		    			{
-    		    				CheckFile("radioMap.txt");			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
-    		    				FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
-    		    		    	OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-    		    				myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()));
-    		    				for(int i=0;i<AP;i++)
-    		    					myOutWriter.append("          " + (APRes[i]/scanNumber));
-    		    				myOutWriter.append("\n");
-    		    				Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
-        		    			myOutWriter.close();
-        		    			fOut.close();																//Chiuso lo stream correttamente
-    		    			}
-    		    		}			    			
+   		    		if (count != 0)
+   		    		{
+   		    			StartNewScan();
+   		    			return;					  	 ///Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
     		    	}
-    		    	
-    		    	if(posBtn.isChecked() == true)//---------------------------->Modalità POSITION
-    		    	{	
-    		    		if(isFirstScan == true)
-    		    		{
-    		    			isFirstScan = false;
-    		    			count = scanNumber - 1;
-    		    		}
-				
-    		    		wifiList = mWifiManager.getScanResults();
-    		    		
-    		    		CheckFile("config.txt");
-    		    		
-    		    		ComputeRSSI();
+    		   		else
+    		   		{
+    		   			if(APRes[0] == 0 || APRes[AP-1] == 0)    					
+    		   				Toast.makeText(getApplicationContext(), "No data from all APs", Toast.LENGTH_LONG).show();    					
+    	    			else		
+   		    				WriteOnFile();
+    		    	}			    			
+    		   	} 	
+        		else///----------------------------------------------------->Modalità POSITION
+        		{	
+        			CheckFirstScan();    		    		    		
+        			ComputeRSSI();
    		    		  		    		   		    		   		    		    		    				
-    		    		if (count != 0)
-    		    		{
-    		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
-    		    			scancount = scancount + 1;
-    		    			StartNewScan();
-    		    			return;						 				//Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
-    		    		}
-    		    		else
-    		    		{  	
-    		    			for(int i=0;i<AP;i++)
-		    					APRes[i] = APRes[i]/scanNumber;
-    		    			
-    		    			if(APRes[0] == 0 || APRes[AP-1] == 0)			///Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
-    		    			{	
-    		    				NNres.setText("No APs data");
-    		    				scanResult.setText("Wait for scan");
-    		    				Toast.makeText(getApplicationContext(), "No APs data", Toast.LENGTH_SHORT).show();
-    		    			}
-    		    			else
-    		    				CheckLocation();		//Funzione che computa la posizione e la stampa a schermo    		    			 		    			
-    		    		}			    	   			   			
-    		    	}   		    	
-    		    	ResetVar();    						///Resetto variabili per prossima operazione		    	  		    		
-    		    }
-    		    else{}//------------------------------------------------>La scansione è stata inviata dal sistema e va ignorata
-    		}
-    		catch (NullPointerException e)  {e.printStackTrace();} 
-    		catch (FileNotFoundException e) {e.printStackTrace();} 
-    		catch (NumberFormatException e) {e.printStackTrace();}
-    		catch (IOException e) 			{e.printStackTrace();}         	
+        			if (count != 0)
+        			{   		    			
+        				StartNewScan();
+        				return;						 ///Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
+        			}
+        			else
+        			{  	
+        				for(int i=0;i<AP;i++)
+        					APRes[i] = APRes[i]/scanNumber;
+    				
+        				if(APRes[0] == 0 || APRes[AP-1] == 0)			///Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
+        				{	
+        					NNres.setText("No APs data");
+        					scanResult.setText("Wait for scan");
+        					Toast.makeText(getApplicationContext(), "No data from all APs", Toast.LENGTH_SHORT).show();    		    			}
+        				else
+        					CheckLocation();		///Funzione che computa la posizione e la stampa a schermo    		    			 		    			
+        			}			    	   			   			
+        		}   		    	
+        		ResetVar();    						///Resetto variabili per prossima operazione		    	  		    		
+  		   }
+           else{}//------------------------------------->La scansione è stata inviata dal sistema e va ignorata 		         	
         }
     };
     
@@ -298,6 +257,16 @@ public class MainActivity extends Activity {
 		posBtn.setChecked(false);  	
     }
    
+    ///Controlla se è la prima scansione e inzializza il contatore per le prossime
+    private void CheckFirstScan()
+    {
+    	if(isFirstScan == true)
+		{
+			isFirstScan = false;
+			count = scanNumber - 1;
+		}
+    }
+   
     ///Computa la posizione attuale   
     private void CheckLocation()
 
@@ -331,7 +300,45 @@ public class MainActivity extends Activity {
 		}
     }
    
-    ///Controlla l'esistenza del file  
+    ///Scrive Fingerprints sul file radioMap.txt
+    private void WriteOnFile()
+    {
+    	try 
+   		{
+				CheckFile("radioMap.txt");			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
+				FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
+			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
+			myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()));
+			for(int i=0;i<AP;i++)
+				myOutWriter.append("          " + (APRes[i]/scanNumber));
+			myOutWriter.append("\n");
+			Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
+			myOutWriter.close();
+			fOut.close();						//Chiuso lo stream correttamente 
+    	}  		    		
+		catch (IOException e) 			{e.printStackTrace();}
+    }
+
+    ///Legge i parametri AP e K dal config.txt che indicano il numero di AP e i K-Nearest AP da considerare nelle scansioni
+    private void ReadConfig(String string)
+    {
+    	CheckFile(string);
+    	try 
+    	{
+    		BufferedReader fileReader = new BufferedReader(new FileReader(config)); 	//Reader android per leggere stringhe da txt
+    		StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    					
+    		String stringResult = fileReader.readLine();
+    		line.append(stringResult);
+    		K = Integer.parseInt(stringResult);
+    		stringResult = fileReader.readLine();
+    		line.append(stringResult);
+    		AP = Integer.parseInt(stringResult);
+    		fileReader.close();   			
+    	}  							 
+    	catch (IOException e) {e.printStackTrace();}
+    }
+   
+    ///Controlla l'esistenza del file contenuto in /sdcard/ nominato "string" 
     private void CheckFile(String string)
     {    
     	try 
@@ -422,6 +429,8 @@ public class MainActivity extends Activity {
     {
     	try 
     	{
+    		CheckFile("config.txt");
+    		wifiList = mWifiManager.getScanResults();
     		int k = 0;
 			boolean stopReader = false;	
 			StringBuilder line = new StringBuilder();
@@ -542,6 +551,8 @@ public class MainActivity extends Activity {
     ///Attende l'intervallo richiesto dall'utente e fa partire una scansione
     private void StartNewScan()
     {
+    	count--; 									 //Abbassa il contatore delle scansioni mancanti
+		scancount++;
     	Handler handler = new Handler();
 		handler.postDelayed(new Runnable() 			 //Attende lo scan interval per lanciare la nuova scansione
 		{		 
@@ -553,25 +564,6 @@ public class MainActivity extends Activity {
 		}, scanInterval*1000);
 		scanResult.setText("Scan number " + scancount + " of " + scanNumber);
 		Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
-    }
-    
-    ///Legge i parametri AP e K dal config.txt che indicano il numero di AP e i K-Nearest AP da considerare nelle scansioni
-    private void ReadConfig(String string)
-    {
-    	CheckFile(string);
-    	try 
-    	{
-    		BufferedReader fileReader = new BufferedReader(new FileReader(config)); 	//Reader android per leggere stringhe da txt
-    		StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    					
-    		String stringResult = fileReader.readLine();
-    		line.append(stringResult);
-    		K = Integer.parseInt(stringResult);
-    		stringResult = fileReader.readLine();
-    		line.append(stringResult);
-    		AP = Integer.parseInt(stringResult);
-    		fileReader.close();   			
-    	}  							 
-    	catch (IOException e) {e.printStackTrace();}
     }
     
     ///Chiusura App
