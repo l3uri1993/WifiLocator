@@ -156,7 +156,7 @@
         android:layout_above="@+id/scanrbtn"
         android:layout_marginBottom="10dp"
         android:text="Wait for scan"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
         android:id="@+id/NN_tx"

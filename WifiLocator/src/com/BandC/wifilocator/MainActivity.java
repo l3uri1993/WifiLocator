@@ -29,11 +29,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
-
-///--------------------------------------------------------------COSTANTI DEFINITE----------------------------------
-	
-	public static final int K = 2;				///Definisce il valore K dei metodi K-NN e WK-NN
-
+							
 ///--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
 	private TextView 	xCordView;
@@ -58,7 +54,6 @@ public class MainActivity extends Activity {
 	private boolean buttonPress = false; 		///Permette di ignorare gli intent in broadcast di sistema
 	private int scanNumber;						///Memorizza le scansioni da effettuare
 	private int scanInterval;					///Intervallo tra ogni scansione
-	private int firstAP,secondAP;				///RSSI di ciascun AP
 	private boolean isFirstScan;				///Permette al Receiver di sapere se è stato appena premuto il bottone
 	private List<ScanResult> wifiList = null;	///Memorizza i risultati temporanei ottenuti dalle scansioni
 	private int count; 							///Conta le scansioni effettuate per ogni operazione
@@ -66,15 +61,16 @@ public class MainActivity extends Activity {
 	private File radioMap,config;				///Variabili per i file   
     private int[][] Results = null;				///Contiene coordinate e distanze calcolate
     private int scancount = 1;					///Contatore scansioni effettuate
+    private int K,AP;							///Definisce il valore K dei metodi K-NN e WK-NN
     private View view;
 	private WifiManager mWifiManager = null;
-	private Context context = null;
+	private Context context = null;	
+	private int[] APRes = null;
 	
 	///Apertura App
     @Override
     protected void onCreate(Bundle savedInstanceState)
-    {
-   
+    {   
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);  
         
@@ -101,20 +97,20 @@ public class MainActivity extends Activity {
         scanBtn    =  (Button)       findViewById(R.id.scanrbtn);
                    
         context = getApplicationContext();      
+        
         radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");  //File memorizzato in variabiles
         config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
         
-        CheckFile("radioMap.txt"); 							//Crea il file delle scansioni se non esiste
-        CheckFile("config.txt");
+        ReadConfig("config.txt");				///Prende i parametri degli APs da scansionare e il valore di K da considerare e crea il file se non esiste
+        CheckFile("radioMap.txt"); 				///Crea il file delle scansioni se non esiste
         
-//--------------------------------------Initialize the WiFi Manager-----------------------------------------------------
+        APRes = new int[AP];					///Inizializzo l'array dei risultati per singolo AP
         
+        ///Inizializzo il WifiManager       
 		mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
 		mWifiManager.createWifiLock(WifiManager.WIFI_MODE_SCAN_ONLY, "scanOnly");       			
-		if(mWifiManager.isWifiEnabled() == false) 								//Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
+		if(mWifiManager.isWifiEnabled() == false) 		///Memorizza se all'avvio il wifi era abilitato per disabilitarlo in chiusura
 	        	wifiIsDisabled = true;
-    	
-//-----------------------------------------------------------------------------------------------------------------------
     }
     
     ///Receiver in Broadcast per le scansioni wifi    
@@ -141,28 +137,29 @@ public class MainActivity extends Activity {
     		    		
     		    		CheckFile("config.txt");
     		    		
-    		    		ComputeRSSI();
+    		    		ComputeRSSI();								///Scansiona gli AP presenti e aggiunge il risultato
     		    		
     		    		if (count != 0)
     		    		{
     		    			count--; 											 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + " of " + scanNumber);
-    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			StartNewScan();
     		    			return;						 //Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
 
     		    		}
     		    		else
     		    		{
-    		    			if(firstAP == 0 || secondAP == 0)    					
-    		    				Toast.makeText(getApplicationContext(), "Error while scanning APs...No result found", Toast.LENGTH_LONG).show();    					
+    		    			if(APRes[0] == 0 || APRes[AP-1] == 0)    					
+    		    				Toast.makeText(getApplicationContext(), "Error while scanning APs...Some results aren't found", Toast.LENGTH_LONG).show();    					
     		    			else
     		    			{
     		    				CheckFile("radioMap.txt");			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
     		    				FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
     		    		    	OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-    		    				myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()) + "          " +  (firstAP/scanNumber) + "          " + (secondAP/scanNumber) + "\n" );
+    		    				myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()));
+    		    				for(int i=0;i<AP;i++)
+    		    					myOutWriter.append("          " + (APRes[i]/scanNumber));
+    		    				myOutWriter.append("\n");
     		    				Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
         		    			myOutWriter.close();
         		    			fOut.close();																//Chiuso lo stream correttamente
@@ -188,17 +185,15 @@ public class MainActivity extends Activity {
     		    		{
     		    			count--; 									 //Abbassa il contatore delle scansioni mancanti
     		    			scancount = scancount + 1;
-    		    			scanResult.setText("Scan number " + scancount + " of " + scanNumber);
-    		    			Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     		    			StartNewScan();
     		    			return;						 				//Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
     		    		}
     		    		else
     		    		{  	
-    		    			firstAP = (firstAP/scanNumber);
-    		    			secondAP = (secondAP/scanNumber);
+    		    			for(int i=0;i<AP;i++)
+		    					APRes[i] = APRes[i]/scanNumber;
     		    			
-    		    			if(firstAP == 0 || secondAP == 0)			///Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
+    		    			if(APRes[0] == 0 || APRes[AP-1] == 0)			///Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
     		    			{	
     		    				NNres.setText("No APs data");
     		    				scanResult.setText("Wait for scan");
@@ -307,7 +302,7 @@ public class MainActivity extends Activity {
     private void CheckLocation()
 
     {
-		Results = new int[K][4];
+		Results = new int[K][2 + AP];
 		
 		for(int l=0;l<K;l++)
 			for(int h=0;h<3;h++)
@@ -320,7 +315,7 @@ public class MainActivity extends Activity {
 						
 		if(Results[0][0] == -1) 								//Nessuna distanza memorizzata ---> File vuoto o dati nel file non validi
 		{
-			Toast.makeText(getApplicationContext(), "File scansioni vuoto o fingerprints inferiori a K", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), "File scansioni vuoto o fingerprints < K", Toast.LENGTH_SHORT).show();
 			NNres.setText("Error");
 			KNNres.setText("Error");
 			WKNNres.setText("Error");
@@ -347,7 +342,11 @@ public class MainActivity extends Activity {
         			radioMap.createNewFile();			
         			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt", true);
         			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        			myOutWriter.append("X" + "          " + "Y" + "         " +  "AP-1" + "       " + "AP-2" + "\n" );
+        			myOutWriter.append("X" + "          " + "Y" + "         " + "APs in order 1.....N\n");
+        			/*for (int i=1;i<=AP;i++)
+        			{
+        				myOutWriter.append("AP-" + i + "       ");
+        			}*/
         			myOutWriter.close(); 
         			fOut.close();
     		}
@@ -357,10 +356,12 @@ public class MainActivity extends Activity {
         			config.createNewFile();			
         			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt", true);
         			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        			myOutWriter.append("00:3a:98:7d:4a:c2\n" ); //----->genuawifi infal			
-        			myOutWriter.append("00:3a:98:7d:4a:c1\n" ); //----->eduroam infal (da risultato praticamente uguale a sopra)
-        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" ); //----->casa 1         			
-        			myOutWriter.append("00:26:44:74:e9:3e\n" ); //----->casa 2
+        			myOutWriter.append("2\n" );					///----->K value
+        			myOutWriter.append("2\n" );					///----->APs value
+        			myOutWriter.append("00:3a:98:7d:4a:c2\n" ); ///----->genuawifi infal			
+        			myOutWriter.append("00:3a:98:7d:4a:c1\n" ); ///----->eduroam infal (da risultato praticamente uguale a sopra)
+        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" ); ///----->casa 1         			
+        			myOutWriter.append("00:26:44:74:e9:3e\n" ); ///----->casa 2
         			myOutWriter.close();        			
         		}
 			}		 
@@ -421,50 +422,47 @@ public class MainActivity extends Activity {
     {
     	try 
     	{
-    		String stringResult;
-			boolean nextAp = false;
+    		int k = 0;
 			boolean stopReader = false;	
 			StringBuilder line = new StringBuilder();
 			BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
 										 			
 			fileReader.mark(Integer.MAX_VALUE); ///Segnaposto a inizio file per successive riletture dall'inizio
-				
+			
+    		String stringResult = fileReader.readLine();		///Salto le prime due righe del file di configurazione
+    		stringResult = fileReader.readLine();
+    		
 			for(int i = 0; i < wifiList.size(); i++)
-			{
-			
-				if (stopReader == true)
-					break;
-			
-				fileReader.reset();
-				
-				while ((stringResult = fileReader.readLine()) != null)
+			{									
+				stringResult = fileReader.readLine();
+				while ((stringResult != null))
 				{
 					line.append(stringResult);
-					if(nextAp == false)
-					{  		    					
+					  		    					
 						if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
-							continue;
-						else
 						{
-							nextAp = true;
-							firstAP = firstAP + wifiList.get(i).level; 							   		    						    		    													  		    							
-							break;
-						}
-					}
-					else
-					{
-						if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
+							stringResult = fileReader.readLine();
+							if(stringResult == null)
+							{
+								fileReader.reset();
+							}
 							continue;
-						else
-						{
-							stopReader = true;
-							secondAP = secondAP + wifiList.get(i).level; 							
-							fileReader.close();    		    													  		    							
-							break;
 						}
-					}   		    					
-				}	
+						else
+						{							
+							APRes[k] = APRes[k] + wifiList.get(i).level;
+							if(k == AP-1)
+								stopReader = true;
+							k++;
+							fileReader.reset();							
+							break;						
+						}				   		    					
+				}
+				
+				if (stopReader == true)
+					break;
 			}
+			fileReader.close();
     	}
     	catch (NullPointerException e)  {e.printStackTrace();} 
 		catch (FileNotFoundException e) {e.printStackTrace();} 
@@ -475,8 +473,8 @@ public class MainActivity extends Activity {
     ///Reinizializza tutte le variabili per una prossima operazione
     private void ResetVar()
     {
-		firstAP = 0;							
-		secondAP = 0;
+    	for(int i=0;i<AP;i++)
+    		APRes[i] = 0;
 		scancount = 1;
 		scanResult.setText("Wait for scan");
 		EnableButtons();
@@ -501,9 +499,11 @@ public class MainActivity extends Activity {
 				for(int i = 0; i < splittedString.length; i++)
 				{
 					splittedInt[i] = Integer.parseInt(splittedString[i]);				//Splitto la stringa del txt in int[]
-				}																		//[0]=X, [1]=Y, [2]=AP1, [3]=AP2
+				}																		//[0]=X, [1]=Y, [2]=AP1, [3]=AP2 ecc ecc
 				
-				int distance = (Math.abs(splittedInt[2] - firstAP) + (Math.abs(splittedInt[2] - secondAP)));
+				int distance = 0;
+				for(int m=0;m<AP;m++)
+					distance = distance + (Math.abs(splittedInt[2+m] - APRes[m]));
 				splittedInt[2] = distance;
 				
 				if(distance < Results[0][2])							//Elabora le K minori distanze
@@ -551,6 +551,27 @@ public class MainActivity extends Activity {
     			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
 		    }
 		}, scanInterval*1000);
+		scanResult.setText("Scan number " + scancount + " of " + scanNumber);
+		Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
+    }
+    
+    ///Legge i parametri AP e K dal config.txt che indicano il numero di AP e i K-Nearest AP da considerare nelle scansioni
+    private void ReadConfig(String string)
+    {
+    	CheckFile(string);
+    	try 
+    	{
+    		BufferedReader fileReader = new BufferedReader(new FileReader(config)); 	//Reader android per leggere stringhe da txt
+    		StringBuilder line = new StringBuilder();								 	//Variabile della stringa presa dal txt		    					
+    		String stringResult = fileReader.readLine();
+    		line.append(stringResult);
+    		K = Integer.parseInt(stringResult);
+    		stringResult = fileReader.readLine();
+    		line.append(stringResult);
+    		AP = Integer.parseInt(stringResult);
+    		fileReader.close();   			
+    	}  							 
+    	catch (IOException e) {e.printStackTrace();}
     }
     
     ///Chiusura App
