@@ -115,96 +115,14 @@ public class MainActivity extends Activity {
 	        	wifiIsDisabled = true;
     }
     
-    ///Receiver in Broadcast per le scansioni wifi    
-    BroadcastReceiver wifiReceiver = new BroadcastReceiver()
-    {
-        @Override
-        public void onReceive(Context c, Intent intent) 
-        {
-        	unregisterReceiver(wifiReceiver);					///Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
-    		    		
-        	if (buttonPress == true)							///Determina che la scansione sia inviata dall'utente
-        	{		   		   						    		   		    	    								
-        		if(trainBtn.isChecked() == true)///---------------------------->Modalità TRAIN
-       			{				   			
-       				CheckFirstScan();	   						///Controlla se e la prima scansione    		    		
-       				ComputeRSSI();								///Scansiona gli AP presenti e aggiunge il risultato
-    		    		
-   		    		if (count != 0)
-   		    		{
-   		    			StartNewScan();
-   		    			return;					  	 ///Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
-    		    	}
-    		   		else
-    		   		{
-    		   			if(APRes[0] == 0 || APRes[AP-1] == 0)    					
-    		   				Toast.makeText(getApplicationContext(), "No data from all APs", Toast.LENGTH_LONG).show();    					
-    	    			else		
-   		    				WriteOnFile();
-    		    	}			    			
-    		   	} 	
-        		else///----------------------------------------------------->Modalità POSITION
-        		{	
-        			CheckFirstScan();    		    		    		
-        			ComputeRSSI();
-   		    		  		    		   		    		   		    		    		    				
-        			if (count != 0)
-        			{   		    			
-        				StartNewScan();
-        				return;						 ///Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
-        			}
-        			else
-        			{  	
-        				for(int i=0;i<AP;i++)
-        					APRes[i] = APRes[i]/scanNumber;
-    				
-        				if(APRes[0] == 0 || APRes[AP-1] == 0)			///Non ho ricevuto alcun dato (sono rimaste a 0 le variabili)
-        				{	
-        					NNres.setText("No APs data");
-        					scanResult.setText("Wait for scan");
-        					Toast.makeText(getApplicationContext(), "No data from all APs", Toast.LENGTH_SHORT).show();    		    			}
-        				else
-        					CheckLocation();		///Funzione che computa la posizione e la stampa a schermo    		    			 		    			
-        			}			    	   			   			
-        		}   		    	
-        		ResetVar();    						///Resetto variabili per prossima operazione		    	  		    		
-  		   }
-           else{}//------------------------------------->La scansione è stata inviata dal sistema e va ignorata 		         	
-        }
-    };
-    
-    ///Abilita tutti gli elementi editabili concluse le operazioni    
-    private void EnableButtons()
-    {
-    	scanBtn.setClickable(true);
-    	xCordText.setEnabled(true);
-        yCordText.setEnabled(true);
-        scanNum.setEnabled(true);
-        trainBtn.setClickable(true);
-        posBtn.setClickable(true);
-        scanIntEd.setEnabled(true);
-    }
-   
-    ///Disabilita tutti gli elementi editabili per completare le operazioni    
-    private void DisableButtons()
-    {
-    	scanBtn.setClickable(false);
-    	xCordText.setEnabled(false);
-        yCordText.setEnabled(false);
-        scanNum.setEnabled(false);
-        trainBtn.setClickable(false);
-        posBtn.setClickable(false);
-        scanIntEd.setEnabled(false);
-    }
-    
-    ///Si avvia al premere del pulsante di scansione      
+  ///Si avvia al premere del pulsante di scansione      
     public void StartScan (View view)
     {					   	
     	DisableButtons();   
     	isFirstScan = true;
        	buttonPress = true;
     	   	    	   	
-    	if (mWifiManager.isWifiEnabled() == false) 			//Enable wifi if it is disabled
+    	if (wifiIsDisabled == true) 			//Enable wifi if it is disabled
     	{      			
     		Toast.makeText(getApplicationContext(), "Wifi is disabled..Making it enabled", Toast.LENGTH_SHORT).show();
     		mWifiManager.setWifiEnabled(true);
@@ -255,18 +173,54 @@ public class MainActivity extends Activity {
     	WKNNres.setVisibility(View.GONE);
 		scanResult.setText("Wait for scan");
 		posBtn.setChecked(false);  	
-    }
-   
-    ///Controlla se è la prima scansione e inzializza il contatore per le prossime
-    private void CheckFirstScan()
+    } 
+    
+    ///Receiver in Broadcast per le scansioni wifi    
+    BroadcastReceiver wifiReceiver = new BroadcastReceiver()
     {
-    	if(isFirstScan == true)
-		{
-			isFirstScan = false;
-			count = scanNumber - 1;
-		}
+        @Override
+        public void onReceive(Context c, Intent intent) 
+        {
+        	unregisterReceiver(wifiReceiver);					///Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
+    		    		
+        	if (buttonPress == true)							///Determina che la scansione sia inviata dall'utente
+        	{		   		   						    		   		    	    								        						   			    					   						///Controlla se e la prima scansione    		    		      				
+        		if(isFirstScan == true)			 				///Controlla se è la prima scansione e inzializza il contatore per le prossime
+        		{
+        			isFirstScan = false;
+        			count = scanNumber - 1;
+        		}
+        		
+        		ComputeRSSI();									///Scansiona gli AP presenti e aggiunge il risultato    		    		
+       			MakeDecision();			    					///Decide se è tempo di effettuare una nuova scansione oppure se dare dei risultati a seconda del bottone premuto      				     						    	  		    		
+  		    }	       	       			         	
+        }
+    };
+    
+    ///Abilita tutti gli elementi editabili concluse le operazioni    
+    private void EnableButtons()
+    {
+    	scanBtn.setClickable(true);
+    	xCordText.setEnabled(true);
+        yCordText.setEnabled(true);
+        scanNum.setEnabled(true);
+        trainBtn.setClickable(true);
+        posBtn.setClickable(true);
+        scanIntEd.setEnabled(true);
     }
    
+    ///Disabilita tutti gli elementi editabili per completare le operazioni    
+    private void DisableButtons()
+    {
+    	scanBtn.setClickable(false);
+    	xCordText.setEnabled(false);
+        yCordText.setEnabled(false);
+        scanNum.setEnabled(false);
+        trainBtn.setClickable(false);
+        posBtn.setClickable(false);
+        scanIntEd.setEnabled(false);
+    }
+        
     ///Computa la posizione attuale   
     private void CheckLocation()
 
@@ -310,7 +264,7 @@ public class MainActivity extends Activity {
 			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
 			myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()));
 			for(int i=0;i<AP;i++)
-				myOutWriter.append("          " + (APRes[i]/scanNumber));
+				myOutWriter.append("          " + (APRes[i]));
 			myOutWriter.append("\n");
 			Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
 			myOutWriter.close();
@@ -566,6 +520,36 @@ public class MainActivity extends Activity {
 		Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     }
     
+    ///Decide se è tempo di effettuare una nuova scansione oppure se dare dei risultati a seconda del bottone premuto
+    private void MakeDecision()
+    {    		
+    	if (count != 0)
+   		{
+   			StartNewScan();
+   			return;					  	 ///Ritorna alla main activity,ma tutti i tasti sono bloccati e le scansioni di sistema sono ignorate. Aspetto i risultati della scansione appena lanciata
+    	}
+   		else
+   		{
+   			for(int i=0;i<AP;i++)
+				APRes[i] = APRes[i]/scanNumber;
+   			
+   			if(APRes[0] == 0 || APRes[AP-1] == 0)
+   			{
+   				NNres.setText("No APs data");
+   				scanResult.setText("Wait for scan");
+   				Toast.makeText(getApplicationContext(), "No data from all APs", Toast.LENGTH_SHORT).show();
+   			}
+   			else
+   			{
+   				if(trainBtn.isChecked() == true)
+   					WriteOnFile();
+   				else
+   					CheckLocation();
+   				ResetVar();    										///Resetto variabili per prossima operazione  
+   			}
+   		}
+    }
+    
     ///Chiusura App
 @Override
 	protected void onDestroy() 
@@ -580,5 +564,4 @@ public class MainActivity extends Activity {
 		}
 		catch(IllegalArgumentException e){e.printStackTrace();}
 	}
-
 }
