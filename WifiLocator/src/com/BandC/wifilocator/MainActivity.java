@@ -249,7 +249,7 @@ public class MainActivity extends Activity {
 			NNMethod(Results);
 			KNNMethod(Results);
 			WKNNMethod(Results);
-			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_LONG).show();
 			scanResult.setText("Wait for scan");
 		}
     }
