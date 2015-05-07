@@ -535,7 +535,7 @@ public class MainActivity extends Activity {
    			
    			if(APRes[0] == 0 || APRes[AP-1] == 0)
    			{
-   				NNres.setText("No APs data");
+   				NNres.setText("");
    				scanResult.setText("Wait for scan");
    				Toast.makeText(getApplicationContext(), "No data from all APs", Toast.LENGTH_SHORT).show();
    			}
@@ -544,9 +544,9 @@ public class MainActivity extends Activity {
    				if(trainBtn.isChecked() == true)
    					WriteOnFile();
    				else
-   					CheckLocation();
-   				ResetVar();    										///Resetto variabili per prossima operazione  
+   					CheckLocation();   				  
    			}
+   			ResetVar();    										///Resetto variabili per prossima operazione
    		}
     }
     
