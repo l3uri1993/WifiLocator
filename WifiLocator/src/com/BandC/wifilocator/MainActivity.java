@@ -122,7 +122,7 @@ public class MainActivity extends Activity {
     	isFirstScan = true;
        	buttonPress = true;
     	   	    	   	
-    	if (wifiIsDisabled == true) 			//Enable wifi if it is disabled
+    	if (mWifiManager.isWifiEnabled() == false) 			//Enable wifi if it is disabled
     	{      			
     		Toast.makeText(getApplicationContext(), "Wifi is disabled..Making it enabled", Toast.LENGTH_SHORT).show();
     		mWifiManager.setWifiEnabled(true);
@@ -320,9 +320,8 @@ public class MainActivity extends Activity {
         			myOutWriter.append("2\n" );					///----->K value
         			myOutWriter.append("2\n" );					///----->APs value
         			myOutWriter.append("00:3a:98:7d:4a:c2\n" ); ///----->genuawifi infal			
-        			myOutWriter.append("00:3a:98:7d:4a:c1\n" ); ///----->eduroam infal (da risultato praticamente uguale a sopra)
-        			myOutWriter.append("a0:f3:c1:6c:1e:49\n" ); ///----->casa 1         			
-        			myOutWriter.append("00:26:44:74:e9:3e\n" ); ///----->casa 2
+        			myOutWriter.append("44:94:fc:e2:2e:9c\n" ); ///----->miorouter infal
+        			myOutWriter.append("00:3a:98:7d:4a:c1\n" ); ///----->eduroam infal
         			myOutWriter.close();        			
         		}
 			}		 
