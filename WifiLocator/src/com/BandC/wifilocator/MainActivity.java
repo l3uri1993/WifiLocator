@@ -393,9 +393,11 @@ public class MainActivity extends Activity {
 			
     		String stringResult = fileReader.readLine();		///Salto le prime due righe del file di configurazione
     		stringResult = fileReader.readLine();
-    		
 			for(int i = 0; i < wifiList.size(); i++)
-			{									
+			{
+				if(wifiList.get(i).level < -65)
+					continue;
+				
 				stringResult = fileReader.readLine();
 				while ((stringResult != null))
 				{
