@@ -14,6 +14,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.graphics.Shader.TileMode;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -32,6 +35,7 @@ public class MainActivity extends Activity {
 							
 ///--------------------------------------------------------------VARIABILI PER ELEMENTI XML-------------------------	
 
+	private TextView    title;
 	private TextView 	xCordView;
 	private TextView 	yCordView;
 	private TextView	scanResult;
@@ -81,6 +85,7 @@ public class MainActivity extends Activity {
         mLoadAnimation.setDuration(2000);
         view.startAnimation(mLoadAnimation);
                 	                 
+        title      =  (TextView) 	 findViewById(R.id.textView1);
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
         yCordView  =  (TextView)	 findViewById(R.id.y_coord_tx);
         scanResult =  (TextView)     findViewById(R.id.lastScanVw);     
@@ -100,6 +105,19 @@ public class MainActivity extends Activity {
                    
         context = getApplicationContext();      
         
+        
+        ///Scritta arcobaleno del title WIFI Locator
+        Shader textShader=new LinearGradient(0, 0, 0, 20,
+                new int[]{getResources().getColor(R.color.violet),getResources().getColor(R.color.indigo),
+                getResources().getColor(R.color.blue),
+                getResources().getColor(R.color.green),
+                getResources().getColor(R.color.yellow),
+                getResources().getColor(R.color.orange),
+                getResources().getColor(R.color.red)},
+                new float[]{0,0.2f,0.4f,0.6f,0.8f,0.9f,1}, TileMode.CLAMP);
+        title.getPaint().setShader(textShader);
+        title.setTextSize(20);
+        
         radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");  //File memorizzato in variabiles
         config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
         
@@ -115,7 +133,7 @@ public class MainActivity extends Activity {
 	        	wifiIsDisabled = true;
     }
     
-  ///Si avvia al premere del pulsante di scansione      
+    ///Si avvia al premere del pulsante di scansione      
     public void StartScan (View view)
     {					   	
     	DisableButtons();   

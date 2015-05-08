@@ -154,7 +154,7 @@
         android:layout_alignBottom="@+id/lastScanTx"
         android:layout_alignRight="@+id/Positionrbtn"
         android:layout_above="@+id/scanrbtn"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="8dp"
         android:text="Wait for scan"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
