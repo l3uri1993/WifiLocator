@@ -3,7 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/idValue"
-    tools:context="${relativePackage}.${activityClass}" >
+    tools:context="${relativePackage}.${activityClass}"
+	android:background="#FFE696"
+	android:statusBarColor="@android:color/transparent">
 
     <TextView
         android:id="@+id/textView1"
@@ -13,6 +15,12 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"
         android:text="@string/Title"
+  		android:textStyle="bold"
+ 		android:textColor="@color/light_font"
+        android:shadowColor="@color/text_shadow"
+        android:shadowDx="4"
+        android:shadowDy="4"
+        android:shadowRadius="3"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -45,7 +53,8 @@
         android:layout_marginLeft="9dp"
         android:text="Train"
         android:checked="true"
-        android:onClick="Trainclick"/>
+        android:onClick="Trainclick"
+        android:buttonTint="#FFA753"/>
     
     <RadioButton
         android:id="@+id/Positionrbtn"
@@ -56,7 +65,8 @@
         android:layout_marginTop="20dp"
         android:layout_marginRight="15dp"
         android:text="Position" 
-        android:onClick="Posclick"/>
+        android:onClick="Posclick"
+        android:buttonTint="#FFA753"/>
 
     <Button
         android:id="@+id/scanrbtn"
@@ -65,7 +75,15 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="30dp"
-        android:text="Start Scan" 
+        android:paddingLeft="30dip"
+   		android:paddingRight="30dip"
+        android:text="Start Scan"
+        android:background="#FFA753"
+        android:textSize="25sp"
+        android:shadowColor="@color/text_shadow"
+        android:shadowDx="4"
+        android:shadowDy="4"
+        android:shadowRadius="3"
         android:onClick="StartScan"/>
 
     <TextView
