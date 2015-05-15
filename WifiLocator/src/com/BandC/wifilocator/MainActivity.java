@@ -10,6 +10,7 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -70,6 +72,7 @@ public class MainActivity extends Activity {
 	private WifiManager mWifiManager = null;
 	private Context context = null;	
 	private int[] APRes = null;
+	private ProgressDialog pd;
 	
 //------------------------------------------------------------------------------------------------------------------------	
 	
@@ -84,6 +87,8 @@ public class MainActivity extends Activity {
         Animation mLoadAnimation = AnimationUtils.loadAnimation(getApplicationContext(), android.R.anim.fade_in);
         mLoadAnimation.setDuration(2000);
         view.startAnimation(mLoadAnimation);
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 	                 
         title      =  (TextView) 	 findViewById(R.id.textView1);
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
@@ -106,7 +111,7 @@ public class MainActivity extends Activity {
         context = getApplicationContext();      
         
         
-        ///Scritta arcobaleno del title WIFI Locator
+  /*      ///Scritta arcobaleno del title WIFI Locator
         Shader textShader=new LinearGradient(0, 0, 0, 20,
                 new int[]{getResources().getColor(R.color.violet),getResources().getColor(R.color.indigo),
                 getResources().getColor(R.color.blue),
@@ -117,7 +122,7 @@ public class MainActivity extends Activity {
                 new float[]{0,0.2f,0.4f,0.6f,0.8f,0.9f,1}, TileMode.CLAMP);
         title.getPaint().setShader(textShader);
         title.setTextSize(20);
-        
+  */      
         radioMap = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt");  //File memorizzato in variabiles
         config = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/config.txt");
         
@@ -125,6 +130,7 @@ public class MainActivity extends Activity {
         CheckFile("radioMap.txt"); 				///Crea il file delle scansioni se non esiste
         
         APRes = new int[AP];					///Inizializzo l'array dei risultati per singolo AP
+        pd = new ProgressDialog(this);
         
         ///Inizializzo il WifiManager       
 		mWifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
@@ -135,11 +141,12 @@ public class MainActivity extends Activity {
     
     ///Si avvia al premere del pulsante di scansione      
     public void StartScan (View view)
-    {					   	
+    {				
+    	ProgressDial();
     	DisableButtons();   
     	isFirstScan = true;
        	buttonPress = true;
-    	   	    	   	
+       	   	   	    	   	
     	if (mWifiManager.isWifiEnabled() == false) 			//Enable wifi if it is disabled
     	{      			
     		Toast.makeText(getApplicationContext(), "Wifi is disabled..Making it enabled", Toast.LENGTH_SHORT).show();
@@ -153,7 +160,8 @@ public class MainActivity extends Activity {
     	}
     	catch (NumberFormatException e) {e.printStackTrace();}
     	
-    	scanResult.setText("Scan number " + scancount + " of " + scanNumber);
+    	scanResult.setText("Scanning...");
+    	pd.setMessage("Scan number " + scancount + " of " + scanNumber);
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));   		
     	mWifiManager.startScan();    		    		    
@@ -193,12 +201,22 @@ public class MainActivity extends Activity {
 		posBtn.setChecked(false);  	
     } 
     
+    public void ProgressDial()
+    {   	
+   	    pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+   	    pd.setMessage("Scan initializing...");
+   	    pd.setIndeterminate(true);
+   	    pd.setCancelable(false);
+   	    pd.setMax(100);
+   	    pd.show();  	    
+    }
     ///Receiver in Broadcast per le scansioni wifi    
     BroadcastReceiver wifiReceiver = new BroadcastReceiver()
     {
         @Override
         public void onReceive(Context c, Intent intent) 
         {
+        	
         	unregisterReceiver(wifiReceiver);					///Elimina il receiver...verrà ricreato per una prossima scansione, se necessario
     		    		
         	if (buttonPress == true)							///Determina che la scansione sia inviata dall'utente
@@ -535,7 +553,9 @@ public class MainActivity extends Activity {
     			mWifiManager.startScan();	 //Non appena i risultati sono pronti riparte la funzione OnReceive
 		    }
 		}, scanInterval*1000);
-		scanResult.setText("Scan number " + scancount + " of " + scanNumber);
+		scanResult.setText("Scanning...");
+		pd.setMessage("Scan number " + scancount + " of " + scanNumber);
+
 		Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     }
     
@@ -566,6 +586,7 @@ public class MainActivity extends Activity {
    					CheckLocation();   				  
    			}
    			ResetVar();    										///Resetto variabili per prossima operazione
+   			pd.dismiss();
    		}
     }
     

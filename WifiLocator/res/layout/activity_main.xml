@@ -1,11 +1,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/idValue"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/idValue"
-    tools:context="${relativePackage}.${activityClass}"
-	android:background="#FFE696"
-	android:statusBarColor="@android:color/transparent">
+    android:background="#87CEEB"
+    android:statusBarColor="@android:color/transparent"
+    tools:context="${relativePackage}.${activityClass}" >
 
     <TextView
         android:id="@+id/textView1"
@@ -16,7 +16,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/Title"
   		android:textStyle="bold"
- 		android:textColor="@color/light_font"
+ 		android:textColor="@color/white"
         android:shadowColor="@color/text_shadow"
         android:shadowDx="4"
         android:shadowDy="4"
@@ -49,12 +49,12 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/textView3"
-        android:layout_marginTop="20dp"
         android:layout_marginLeft="9dp"
-        android:text="Train"
+        android:layout_marginTop="20dp"
+        android:buttonTint="#0000CD"
         android:checked="true"
         android:onClick="Trainclick"
-        android:buttonTint="#FFA753"/>
+        android:text="Train" />
     
     <RadioButton
         android:id="@+id/Positionrbtn"
@@ -62,11 +62,11 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/textView3"
-        android:layout_marginTop="20dp"
         android:layout_marginRight="15dp"
-        android:text="Position" 
+        android:layout_marginTop="20dp"
+        android:buttonTint="#1E90FF"
         android:onClick="Posclick"
-        android:buttonTint="#FFA753"/>
+        android:text="Position" />
 
     <Button
         android:id="@+id/scanrbtn"
@@ -75,16 +75,18 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="30dp"
+        android:background="#1E90FF"
+        android:onClick="StartScan"
         android:paddingLeft="30dip"
-   		android:paddingRight="30dip"
-        android:text="Start Scan"
-        android:background="#FFA753"
-        android:textSize="25sp"
+        android:paddingRight="30dip"
+        android:textColor="@color/white"
         android:shadowColor="@color/text_shadow"
         android:shadowDx="4"
         android:shadowDy="4"
         android:shadowRadius="3"
-        android:onClick="StartScan"/>
+        android:text="Start Scan"
+        android:textColorLink="@color/text_shadow_white"
+        android:textSize="25sp" />
 
     <TextView
         android:id="@+id/scannum"
