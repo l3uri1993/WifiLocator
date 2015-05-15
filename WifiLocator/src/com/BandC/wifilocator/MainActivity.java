@@ -40,6 +40,7 @@ public class MainActivity extends Activity {
 	private TextView    title;
 	private TextView 	xCordView;
 	private TextView 	yCordView;
+	private TextView    tagView;
 	private TextView	scanResult;
 	private TextView	NNtx;
 	private TextView	KNNtx;
@@ -47,8 +48,11 @@ public class MainActivity extends Activity {
 	private TextView	NNres;
 	private TextView	KNNres;
 	private TextView	WKNNres;
+	private TextView	qTx;
+	private TextView	qRes;	
 	private EditText    xCordText;
 	private EditText	yCordText;
+	private EditText	tagText;
 	private EditText 	scanNum;
 	private EditText    scanIntEd;
 	private Button 	    scanBtn;
@@ -68,10 +72,10 @@ public class MainActivity extends Activity {
     private int[][] Results = null;				///Contiene coordinate e distanze calcolate
     private int scancount = 1;					///Contatore scansioni effettuate
     private int K,AP;							///K definisce il valore K dei metodi K-NN e WK-NN, AP è il numero degli APs
+	private int[] APRes = null;					///Array con i risultati definitivi degli RSSI di ogni singolo AP
     private View view;
 	private WifiManager mWifiManager = null;
 	private Context context = null;	
-	private int[] APRes = null;
 	private ProgressDialog pd;
 	
 //------------------------------------------------------------------------------------------------------------------------	
@@ -93,6 +97,7 @@ public class MainActivity extends Activity {
         title      =  (TextView) 	 findViewById(R.id.textView1);
         xCordView  =  (TextView) 	 findViewById(R.id.x_coord_tx);
         yCordView  =  (TextView)	 findViewById(R.id.y_coord_tx);
+        tagView  =    (TextView)     findViewById(R.id.tag_tx);
         scanResult =  (TextView)     findViewById(R.id.lastScanVw);     
        	NNtx	   =  (TextView)     findViewById(R.id.NN_tx);
     	KNNtx      =  (TextView)     findViewById(R.id.K_NN_tx);
@@ -100,8 +105,11 @@ public class MainActivity extends Activity {
     	NNres      =  (TextView)     findViewById(R.id.NN_res);
     	KNNres     =  (TextView)     findViewById(R.id.K_NN_res);
     	WKNNres    =  (TextView)     findViewById(R.id.WK_NN_res);
+    	qRes       =  (TextView)     findViewById(R.id.q_res);
+    	qTx        =  (TextView)     findViewById(R.id.q_tx);
         xCordText  =  (EditText)     findViewById(R.id.x_coord_edtx);
-        yCordText  =  (EditText)     findViewById(R.id.y_coord_edtx); 
+        yCordText  =  (EditText)     findViewById(R.id.y_coord_edtx);
+        tagText    =  (EditText)     findViewById(R.id.tag_edtx);
         scanNum    =  (EditText)     findViewById(R.id.scannum_etx);
         scanIntEd  =  (EditText)     findViewById(R.id.scanIntEd);
         trainBtn   =  (RadioButton)  findViewById(R.id.Trainrbtn);
@@ -156,12 +164,12 @@ public class MainActivity extends Activity {
     	try   
     	{
     		scanNumber = Integer.parseInt(scanNum.getText().toString()); 
-    		scanInterval = Integer.parseInt(scanIntEd.getText().toString()); 
+    		scanInterval = Integer.parseInt(scanIntEd.getText().toString());
     	}
     	catch (NumberFormatException e) {e.printStackTrace();}
     	
     	scanResult.setText("Scanning...");
-    	pd.setMessage("Scan number " + scancount + " of " + scanNumber);
+    	pd.setMessage("      Scan number " + scancount + " of " + scanNumber);
 
     	registerReceiver(wifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));   		
     	mWifiManager.startScan();    		    		    
@@ -174,12 +182,16 @@ public class MainActivity extends Activity {
     	yCordView.setVisibility(View.GONE);
     	xCordText.setVisibility(View.GONE);
     	yCordText.setVisibility(View.GONE);
+    	tagText.setVisibility(View.GONE);
+    	tagView.setVisibility(View.GONE);
     	NNtx.setVisibility(View.VISIBLE);
     	KNNtx.setVisibility(View.VISIBLE);
     	WKNNtx.setVisibility(View.VISIBLE);
     	NNres.setVisibility(View.VISIBLE);
     	KNNres.setVisibility(View.VISIBLE);
     	WKNNres.setVisibility(View.VISIBLE);
+    	qRes.setVisibility(View.VISIBLE);
+    	qTx.setVisibility(View.VISIBLE);
     	scanResult.setVisibility(View.VISIBLE);
     	trainBtn.setChecked(false);
     }
@@ -191,25 +203,30 @@ public class MainActivity extends Activity {
     	yCordView.setVisibility(View.VISIBLE);
     	xCordText.setVisibility(View.VISIBLE);
     	yCordText.setVisibility(View.VISIBLE);
+    	tagText.setVisibility(View.VISIBLE);
+    	tagView.setVisibility(View.VISIBLE);
     	NNtx.setVisibility(View.GONE);
     	KNNtx.setVisibility(View.GONE);
     	WKNNtx.setVisibility(View.GONE);
     	NNres.setVisibility(View.GONE);
     	KNNres.setVisibility(View.GONE);
     	WKNNres.setVisibility(View.GONE);
+    	qRes.setVisibility(View.GONE);
+    	qTx.setVisibility(View.GONE);
 		scanResult.setText("Wait for scan");
 		posBtn.setChecked(false);  	
     } 
     
-    public void ProgressDial()
+    ///Abilita il ProgressDialog
+    private void ProgressDial()
     {   	
    	    pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-   	    pd.setMessage("Scan initializing...");
+   	    pd.setMessage("...Scan initializing...");
    	    pd.setIndeterminate(true);
    	    pd.setCancelable(false);
-   	    pd.setMax(100);
    	    pd.show();  	    
     }
+    
     ///Receiver in Broadcast per le scansioni wifi    
     BroadcastReceiver wifiReceiver = new BroadcastReceiver()
     {
@@ -261,14 +278,14 @@ public class MainActivity extends Activity {
     private void CheckLocation()
 
     {
-		Results = new int[K][2 + AP];
+		Results = new int[K][3 + AP];
 		
 		for(int l=0;l<K;l++)
 			for(int h=0;h<3;h++)
 				Results[l][h] = -1;
 		
 		for (int l=0;l<K;l++)
-			Results[l][2] = Integer.MAX_VALUE;
+			Results[l][3] = Integer.MAX_VALUE;
 			  	
 		EvaluateDistances();						
 						
@@ -285,8 +302,9 @@ public class MainActivity extends Activity {
 			NNMethod(Results);
 			KNNMethod(Results);
 			WKNNMethod(Results);
-			Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_LONG).show();
-			scanResult.setText("Wait for scan");
+			qRes.setText("Quadrant " + Results[0][2]);		
+  	    	Toast.makeText(getApplicationContext(), "Position acquired", Toast.LENGTH_LONG).show();
+   			scanResult.setText("Wait for scan"); 					
 		}
     }
    
@@ -295,14 +313,17 @@ public class MainActivity extends Activity {
     {
     	try 
    		{
-				CheckFile("radioMap.txt");			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
-				FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
+			CheckFile("radioMap.txt");			//Controlla se il file delle scansioni è stato erroneamente eliminato e in tal caso lo crea
+			FileOutputStream fOut = new FileOutputStream("/sdcard/radioMap.txt", true); //creato nuovo stream di output per la scrittura
 			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-			myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()));
+			myOutWriter.append(Integer.parseInt(xCordText.getText().toString()) + "          " + Integer.parseInt(yCordText.getText().toString()) + "          " + Integer.parseInt(tagText.getText().toString()));
+
 			for(int i=0;i<AP;i++)
 				myOutWriter.append("          " + (APRes[i]));
-			myOutWriter.append("\n");
-			Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
+			
+			myOutWriter.append("\n");			
+   			Toast.makeText(getApplicationContext(), "Recorded on file", Toast.LENGTH_LONG).show();
+   			    			
 			myOutWriter.close();
 			fOut.close();						//Chiuso lo stream correttamente 
     	}  		    		
@@ -339,7 +360,7 @@ public class MainActivity extends Activity {
         			radioMap.createNewFile();			
         			FileOutputStream fOut = new FileOutputStream(Environment.getExternalStorageDirectory().getAbsolutePath() + "/radioMap.txt", true);
         			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
-        			myOutWriter.append("X" + "          " + "Y" + "         " + "APs in order 1.....N\n");
+        			myOutWriter.append("X" + "          " + "Y" + "         " + "Tag" + "         " + "APs in order 1.....N\n");
         			/*for (int i=1;i<=AP;i++)
         			{
         				myOutWriter.append("AP-" + i + "       ");
@@ -355,9 +376,9 @@ public class MainActivity extends Activity {
         			OutputStreamWriter myOutWriter = new OutputStreamWriter(fOut);
         			myOutWriter.append("2\n" );					///----->K value
         			myOutWriter.append("2\n" );					///----->APs value
+        			myOutWriter.append("00:25:9c:8f:b7:69\n" ); ///----->AP corner top-right infal
+        			myOutWriter.append("00:25:9c:8f:b7:6f\n" ); ///----->AP corner top-left infal
         			myOutWriter.append("00:3a:98:7d:4a:c2\n" ); ///----->genuawifi infal			
-        			myOutWriter.append("44:94:fc:e2:2e:9c\n" ); ///----->miorouter infal
-        			myOutWriter.append("00:3a:98:7d:4a:c1\n" ); ///----->eduroam infal
         			myOutWriter.close();        			
         		}
 			}		 
@@ -420,53 +441,37 @@ public class MainActivity extends Activity {
     	{
     		CheckFile("config.txt");
     		wifiList = mWifiManager.getScanResults();
-    		int k = 0;
-			boolean stopReader = false;	
+    		int k = 0; ///Contatore indice di APRes
 			StringBuilder line = new StringBuilder();
-			BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt
-										 			
-			fileReader.mark(Integer.MAX_VALUE); ///Segnaposto a inizio file per successive riletture dall'inizio
+			BufferedReader fileReader = new BufferedReader(new FileReader(config)); 		//Reader android per leggere stringhe da txt										 			
 			
-    		String stringResult = fileReader.readLine();		///Salto le prime due righe del file di configurazione
-    		stringResult = fileReader.readLine();
-			for(int i = 0; i < wifiList.size(); i++)
+			String stringResult = fileReader.readLine();
+			stringResult = fileReader.readLine();
+			stringResult = fileReader.readLine();
+			while ((stringResult != null))
 			{
-				if(wifiList.get(i).level < -65)
-					continue;
+				line.append(stringResult);
 				
-				stringResult = fileReader.readLine();
-				while ((stringResult != null))
+				for(int i = 0; i < wifiList.size(); i++)
 				{
-					line.append(stringResult);
-					  		    					
-						if(((wifiList.get(i).BSSID).equals(stringResult)) == false)
-						{
-							stringResult = fileReader.readLine();
-							if(stringResult == null)
-							{
-								fileReader.reset();
-							}
-							continue;
-						}
-						else
-						{							
-							APRes[k] = APRes[k] + wifiList.get(i).level;
-							if(k == AP-1)
-								stopReader = true;
-							k++;
-							fileReader.reset();							
-							break;						
-						}				   		    					
+					if(wifiList.get(i).level < -75 || wifiList.get(i).level > -20 ) ///Avoid bad result
+						continue;	
+					if(((wifiList.get(i).BSSID).equals(stringResult)) == false)		
+						continue;
+					else															///Trovata corrispondenza
+					{								
+						APRes[k] = APRes[k] + wifiList.get(i).level;
+						stringResult = fileReader.readLine();
+						k++;
+						if(k == AP)
+							stringResult = null;												
+						break;			
+					}	
 				}
-				
-				if (stopReader == true)
-					break;
 			}
 			fileReader.close();
     	}
     	catch (NullPointerException e)  {e.printStackTrace();} 
-		catch (FileNotFoundException e) {e.printStackTrace();} 
-		catch (NumberFormatException e) {e.printStackTrace();}
 		catch (IOException e) {e.printStackTrace();}
     }
     
@@ -499,14 +504,14 @@ public class MainActivity extends Activity {
 				for(int i = 0; i < splittedString.length; i++)
 				{
 					splittedInt[i] = Integer.parseInt(splittedString[i]);				//Splitto la stringa del txt in int[]
-				}																		//[0]=X, [1]=Y, [2]=AP1, [3]=AP2 ecc ecc
+				}																		//[0]=X, [1]=Y, [2]=TAG, [3]=AP1 ecc ecc
 				
 				int distance = 0;
 				for(int m=0;m<AP;m++)
-					distance = distance + (Math.abs(splittedInt[2+m] - APRes[m]));
-				splittedInt[2] = distance;
+					distance = distance + (Math.abs(splittedInt[3+m] - APRes[m]));
+				splittedInt[3] = distance;
 				
-				if(distance < Results[0][2])							//Elabora le K minori distanze
+				if(distance < Results[0][3])							//Elabora le K minori distanze
 				{														//Results[A][B] --> A = kappesimo risultato
 					for(int i=0;i<K-1;i++)								//					B = 0 ----> Cord X
 					{													//						1 ----> Cord Y
@@ -516,7 +521,7 @@ public class MainActivity extends Activity {
 				}
 				for(int m=0;m<K-1;m++)
 				{
-					if(distance > Results[m][2] && distance < Results[m+1][2])
+					if(distance > Results[m][3] && distance < Results[m+1][3])
 					{
 						for(int i=0;i<K-2;i++)
 						{
@@ -554,7 +559,7 @@ public class MainActivity extends Activity {
 		    }
 		}, scanInterval*1000);
 		scanResult.setText("Scanning...");
-		pd.setMessage("Scan number " + scancount + " of " + scanNumber);
+		pd.setMessage("      Scan number " + scancount + " of " + scanNumber);
 
 		Toast.makeText(getApplicationContext(), "New Scan", Toast.LENGTH_SHORT).show();
     }
@@ -586,7 +591,7 @@ public class MainActivity extends Activity {
    					CheckLocation();   				  
    			}
    			ResetVar();    										///Resetto variabili per prossima operazione
-   			pd.dismiss();
+   			pd.dismiss(); 			 			
    		}
     }
     

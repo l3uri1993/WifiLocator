@@ -129,6 +129,15 @@
         android:layout_below="@+id/x_coord_tx"
         android:layout_marginTop="14dp"
         android:text="Y Coordinate:   " />
+    
+    <TextView
+        android:id="@+id/tag_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/y_coord_tx"
+        android:layout_marginTop="14dp"
+        android:text="Tag Q:                " />
 
     <EditText
         android:id="@+id/x_coord_edtx"
@@ -150,6 +159,19 @@
         android:layout_alignBaseline="@+id/y_coord_tx"
         android:layout_alignBottom="@+id/y_coord_tx"
         android:layout_toRightOf="@+id/y_coord_tx"
+        android:ems="2"
+        android:text="0"
+        android:background="#00000000"
+        android:layout_marginTop="14dp"
+        android:inputType="number" />
+    
+    <EditText
+        android:id="@+id/tag_edtx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tag_tx"
+        android:layout_alignBottom="@+id/tag_tx"
+        android:layout_toRightOf="@+id/tag_tx"
         android:ems="2"
         android:text="0"
         android:background="#00000000"
@@ -207,6 +229,16 @@
         android:layout_marginTop="10dp"
         android:text="WK-NN Method: "
         android:visibility="gone" />
+    
+    <TextView
+        android:id="@+id/q_tx"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/scannum"
+        android:layout_below="@+id/WK_NN_tx"
+        android:layout_marginTop="10dp"
+        android:text="Quadrant revealed: "
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/NN_res"
@@ -232,6 +264,15 @@
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/WK_NN_tx"
         android:layout_alignBottom="@+id/WK_NN_tx"
+        android:layout_alignRight="@+id/lastScanVw"
+        android:text="" />
+    
+     <TextView
+        android:id="@+id/q_res"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/q_tx"
+        android:layout_alignBottom="@+id/q_tx"
         android:layout_alignRight="@+id/lastScanVw"
         android:text="" />
 
