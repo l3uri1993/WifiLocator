@@ -439,6 +439,7 @@ public class MainActivity extends Activity {
     {
     	try 
     	{
+    		boolean noResult = true;
     		CheckFile("config.txt");
     		wifiList = mWifiManager.getScanResults();
     		int k = 0; ///Contatore indice di APRes
@@ -463,11 +464,15 @@ public class MainActivity extends Activity {
 						APRes[k] = APRes[k] + wifiList.get(i).level;
 						stringResult = fileReader.readLine();
 						k++;
+						noResult = false;
 						if(k == AP)
 							stringResult = null;												
 						break;			
 					}	
 				}
+				
+				if(noResult == true)						//Se non è stato trovato un AP farà uscire un errore nei risultati
+					break;
 			}
 			fileReader.close();
     	}
