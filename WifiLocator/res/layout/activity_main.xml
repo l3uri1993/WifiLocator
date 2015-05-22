@@ -3,7 +3,7 @@
     android:id="@+id/idValue"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#87CEEB"
+    android:background="#0adea0"
     android:statusBarColor="@android:color/transparent"
     tools:context="${relativePackage}.${activityClass}" >
 
@@ -51,7 +51,7 @@
         android:layout_below="@+id/textView3"
         android:layout_marginLeft="9dp"
         android:layout_marginTop="20dp"
-        android:buttonTint="#0000CD"
+        android:buttonTint="#37a0bc"
         android:checked="true"
         android:onClick="Trainclick"
         android:text="Train" />
@@ -64,7 +64,7 @@
         android:layout_below="@+id/textView3"
         android:layout_marginRight="15dp"
         android:layout_marginTop="20dp"
-        android:buttonTint="#1E90FF"
+        android:buttonTint="#37a0bc"
         android:onClick="Posclick"
         android:text="Position" />
 
@@ -75,16 +75,16 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="30dp"
-        android:background="#1E90FF"
+        android:background="#37a0bc"
         android:onClick="StartScan"
         android:paddingLeft="30dip"
         android:paddingRight="30dip"
-        android:textColor="@color/white"
         android:shadowColor="@color/text_shadow"
         android:shadowDx="4"
         android:shadowDy="4"
         android:shadowRadius="3"
         android:text="Start Scan"
+        android:textColor="@color/white"
         android:textColorLink="@color/text_shadow_white"
         android:textSize="25sp" />
 
